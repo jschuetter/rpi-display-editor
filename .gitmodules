@@ -1,0 +1,4 @@
+[submodule "rpi-display-src"]
+	path = rpi-display-src
+	url = https://github.com/jschuetter/rpi-display
+	branch = main
