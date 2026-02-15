@@ -1,1 +1,4 @@
 pyside6
+bdfparser
+pillow
+numpy
