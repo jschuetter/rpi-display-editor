@@ -12,7 +12,7 @@ import numpy as np
 
 from PySide6.QtWidgets import QWidget, QApplication
 from PySide6.QtGui import QPainter, QColor, QBrush
-from PySide6.QtCore import Qt, QSize, QRectF
+from PySide6.QtCore import Qt, QSize, QRect, QPoint
 
 class MatrixWidget(QWidget):
     def __init__(self, rows=32, cols=64, px_size=12, pitch=3, parent=None):
@@ -51,11 +51,11 @@ class MatrixWidget(QWidget):
                 color = self._colors[r][c]
                 painter.setPen(Qt.NoPen)
                 painter.setBrush(QBrush(color))
-                painter.drawEllipse(QRectF(x, y, d, d))  # Note: could change to rect grid here
+                painter.drawEllipse(QRect(x, y, d, d))  # Note: could change to rect grid here
 
     def _cell_rect(self, row, col):
         '''
-        Return the QRectF object for the given cell coordinate
+        Return the QRect object for the given cell coordinate
         
         :param row: row index of cell
         :param col: col index of cell
@@ -64,8 +64,10 @@ class MatrixWidget(QWidget):
         s = self.pitch
         x = col * (d + s)
         y = row * (d + s)
-        return QRectF(x, y, d, d)
+        return QRect(x, y, d, d)
     
+    #region draw_methods
+
     def set_px(self, row, col, color):
         '''
         Set the color of an individual pixel in the matrix
@@ -81,7 +83,7 @@ class MatrixWidget(QWidget):
             raise IndexError("Pixel coord out of range.")
         qcolor = color if isinstance(color, QColor) else QColor(color)
         self._colors[row][col] = qcolor
-        self.update(self._cell_rect(row, col).toRect())  # Update only changed area
+        self.update(self._cell_rect(row, col))  # Update only changed area
 
     def fill(self, color):
         '''
@@ -149,3 +151,155 @@ class MatrixWidget(QWidget):
                     self.set_px(row_n, col_n, QColor(*img_array[row_n][col_n]))
                 except IndexError:  # Ignore overflow
                     pass
+
+    #endregion
+
+#region emulator
+class MatrixEmulatorWidget(MatrixWidget):
+    '''
+    Extension of MatrixWidget that can store draggable widget objects for live updates
+    '''
+    def __init__(self, parent=None):
+        super().__init__(parent=parent)
+        # List of widgets currently displaying
+        # First element is None to represent background layer
+        self.widgets = [ None ]
+        # clone of MatrixWidget._colors with list of pixel color values
+        # representing layers bottom-to-top
+        self._layers = [ self._colors ]
+        # Accept drop events
+        self.setAcceptDrops(True)
+
+    def add_widget(self, widget):
+        '''
+        Add widget to matrix emulator interface
+        - Add to widget list
+        - Add color layer
+        
+        :param widget: Widget to add
+        '''
+        self.widgets.append(widget)
+        self._layers.append(self._draw_array(widget))
+        widget.setParent(self)
+        self.update_colors()
+
+    def _draw_array(self, widget):
+        '''
+        Draw widget onto array object with matrix dimensions
+        
+        :param widget: widget to draw (attributes specify location)
+        :return np.array:
+        '''
+        output_array = np.full((len(self._colors), len(self._colors[0])), None)
+        print(widget.draw().shape)
+        # print(widget.mat_bb.top(), widget.mat_bb.bottom()+1,
+        #     widget.mat_bb.left(), widget.mat_bb.right()+1, )
+        output_array[
+            widget.mat_bb.top():widget.mat_bb.bottom()+1,
+            widget.mat_bb.left():widget.mat_bb.right()+1, 
+            ] = widget.draw()
+        
+        # Update widget display box
+        widget.disp_bb = self._mat_to_disp(widget.mat_bb)
+        widget.update()
+
+        return output_array
+    
+    def _mat_to_disp(self, mat_bb: QRect):
+        '''
+        Convert matrix bounding box to display bounding box
+        
+        :param mat_bb: QRect object in matrix coordinate system
+        '''
+        x = mat_bb.x() * (self.px_size + self.pitch)
+        y = mat_bb.y() * (self.px_size + self.pitch)
+        w = mat_bb.width() * (self.px_size + self.pitch)
+        h = mat_bb.height() * (self.px_size + self.pitch)
+        return QRect(x, y, w, h)
+        
+    def _disp_pos_to_mat(self, disp_pt: QPoint):
+        '''
+        Convert coordinate point in display coordinates to matrix coordinates
+        
+        :param disp_pt: QPoint in display coordinates to convert to matrix coordiantes
+        :type disp_pt: QPoint
+        '''
+        x = disp_pt.x() / (self.px_size + self.pitch)
+        y = disp_pt.y() / (self.px_size + self.pitch)
+        return QPoint(x, y)
+
+    def update_colors(self, bounding_rect: QRect = None):
+        '''
+        Update matrix color matrix based on widgets
+
+        :param bounding_rect: QRect object containing the area to update
+        '''
+        row_range = range(self.rows)
+        col_range = range(self.cols)
+        if bounding_rect: 
+            row_range = range(
+                max(0, bounding_rect.top()), 
+                max(self.rows, bounding_rect.bottom())
+                )
+            col_range = range(
+                max(0, bounding_rect.left()), 
+                max(self.cols, bounding_rect.right())
+                )
+        for row in row_range:
+            for col in col_range:
+                # Select color value from highest layer
+                layer_idx = 0
+                color = None
+                while color is None and layer_idx > -(len(self._layers)):
+                    layer_idx -= 1
+                    color = self._layers[layer_idx][row][col]
+                    
+                if color is None or not isinstance(color, QColor):
+                    raise ValueError(f"Invalid color value at row {row}, col {col}")
+                self._colors[row][col] = color
+
+    def update_widget(self, widget_idx):
+        '''
+        Re-draw widget's color layer
+        
+        :param widget_idx: Index of widget to update
+        '''
+        self._layers[widget_idx] = self.widgets[widget_idx].draw()
+
+    def dragEnterEvent(self, e):
+        '''
+        Override default dragEnterEvent - accept drag
+        '''
+        e.accept()
+
+    def dropEvent(self, e):
+        '''
+        Accept drop event
+        No need to do anything here - everything is handled in dragMoveEvent
+        '''
+        e.accept()
+    
+    def dragMoveEvent(self, e):
+        '''
+        Logic to execute when widget is dragged around on the matrix
+        '''
+        pos = e.pos()
+        widget = e.source()
+        w_idx = self.widgets.index(widget)
+        print(f"Move event: {w_idx} to {pos}")
+        # Update position attributes of widget itself
+        src_bb = widget.mat_bb  # Store original position of matrix
+        # Convert display coordinates to matrix coordinates
+        mat_pos = self._disp_pos_to_mat(pos)
+        widget.mat_bb.moveTo(mat_pos)
+        # Update corresponding draw layer
+        self._layers[w_idx] = self._draw_array(widget)
+        print(w_idx)
+        # Update matrix
+        # Find bounding box of source + destination
+        update_bb = src_bb.united(widget.mat_bb)
+        print(update_bb)
+        # self.update_colors(update_bb)
+        # self.update(update_bb)
+        self.update_colors()
+        self.update()

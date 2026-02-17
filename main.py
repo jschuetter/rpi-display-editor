@@ -9,7 +9,8 @@ This application is designed to be a lightweight desktop editor for developing m
 import sys
 from PySide6 import QtCore, QtWidgets, QtGui
 
-from src.Matrix import MatrixWidget
+from src.Matrix import MatrixWidget, MatrixEmulatorWidget
+from src.Draggable import TextWidget, ImgWidget
 
 SRC_DIR = "./src/"
 
@@ -21,10 +22,12 @@ if __name__ == "__main__":
 
     app = QtWidgets.QApplication([])
 
-    matrix = MatrixWidget()
+    matrix = MatrixEmulatorWidget()
     matrix.fill('blue')
-    matrix.draw_text(0, 0, "Hello, world!", "rpi-display-src/fonts/basic/4x6.bdf", "yellow")
-    matrix.draw_img("./cloudy-day.png", 10, 10, 15, 15)
+    img = ImgWidget(15, 0, "./cloudy-day.png", 15, 15)
+    matrix.add_widget(img)
+    # matrix.draw_text(0, 0, "Hello, world!", "rpi-display-src/fonts/basic/4x6.bdf", "yellow")
+    # matrix.draw_img("./cloudy-day.png", 15, 0, 15, 15)
     # widget.resize(800, 600)
     matrix.show()
 
