@@ -13,7 +13,7 @@ import random as rand
 
 from PySide6.QtWidgets import QWidget
 from PySide6.QtGui import QDrag, QColor, QPainter, QPen, QBrush
-from PySide6.QtCore import Qt, QSize, QMimeData, QRect
+from PySide6.QtCore import Qt, QSize, QMimeData, QRect, QPoint
 
 class DragWidget(QWidget):
     '''
@@ -24,14 +24,9 @@ class DragWidget(QWidget):
         # self.x = x
         # self.y = y
         self.mat_bb = QRect()  # Bounding box for matrix emulator
-        self.disp_bb = QRect()  # Bounding box for GUI display
         self.show_box = True
         # Generate random color for bounding box
-        self.color = QColor.fromHsl(rand.randint(0, 360), 100, 60)
-        # Bounding box attributes
-        # self.bb = QRect()
-        # Set default min. size
-        # self.setMinimumSize(self.bb)
+        self.color = QColor.fromHsl(rand.randint(0, 360), 255, 153)
 
     def mousePressEvent(self, e):
         '''
@@ -58,14 +53,14 @@ class DragWidget(QWidget):
         # If show_box is False, skip draw
         if not self.show_box: 
             return
-        
+
         painter = QPainter(self)
         painter.setRenderHint(QPainter.Antialiasing)
         pen = QPen(self.color)
         pen.setWidth(5)
         painter.setPen(pen)
         painter.setBrush(QBrush(QColor(0, 0, 0, 0)))  # Transparent fill
-        painter.drawRect(self.disp_bb)
+        painter.drawRect(0, 0, self.width(), self.height())
 
 class TextWidget(DragWidget):
     def __init__(self, x, y, text, font_path, color, parent=None):

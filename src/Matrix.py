@@ -6,12 +6,13 @@ PyQt widget class definition for emulating LED matrix behavior
 '''
 
 import os
+from copy import deepcopy
 from bdfparser import Font
 from PIL import Image
 import numpy as np
 
 from PySide6.QtWidgets import QWidget, QApplication
-from PySide6.QtGui import QPainter, QColor, QBrush
+from PySide6.QtGui import QPainter, QColor, QBrush, QPen
 from PySide6.QtCore import Qt, QSize, QRect, QPoint
 
 class MatrixWidget(QWidget):
@@ -52,6 +53,12 @@ class MatrixWidget(QWidget):
                 painter.setPen(Qt.NoPen)
                 painter.setBrush(QBrush(color))
                 painter.drawEllipse(QRect(x, y, d, d))  # Note: could change to rect grid here
+        pen = QPen("red")
+        pen.setWidth(3)
+        painter.setPen(pen)
+        painter.setBrush(QBrush(QColor(0, 0, 0, 0)))
+        painter.drawRect(0, 0, self.width(), self.height())
+        
 
     def _cell_rect(self, row, col):
         '''
@@ -166,9 +173,11 @@ class MatrixEmulatorWidget(MatrixWidget):
         self.widgets = [ None ]
         # clone of MatrixWidget._colors with list of pixel color values
         # representing layers bottom-to-top
-        self._layers = [ self._colors ]
+        self._layers = [ deepcopy(self._colors) ]
         # Accept drop events
         self.setAcceptDrops(True)
+        # QRect defining matrix bounds
+        self.bb = QRect(0, 0, self.cols, self.rows)
 
     def add_widget(self, widget):
         '''
@@ -181,6 +190,12 @@ class MatrixEmulatorWidget(MatrixWidget):
         self.widgets.append(widget)
         self._layers.append(self._draw_array(widget))
         widget.setParent(self)
+        disp_bb = self._mat_to_disp(widget.mat_bb)
+        print(disp_bb)
+        widget.setGeometry(disp_bb)
+        widget.setMinimumSize(widget.size())
+        # widget.move(disp_bb.topLeft())
+        widget.update()
         self.update_colors()
 
     def _draw_array(self, widget):
@@ -190,17 +205,26 @@ class MatrixEmulatorWidget(MatrixWidget):
         :param widget: widget to draw (attributes specify location)
         :return np.array:
         '''
-        output_array = np.full((len(self._colors), len(self._colors[0])), None)
-        print(widget.draw().shape)
-        # print(widget.mat_bb.top(), widget.mat_bb.bottom()+1,
-        #     widget.mat_bb.left(), widget.mat_bb.right()+1, )
+        output_array = np.full((len(self._colors), len(self._colors[0])), QColor("invalid"))
+        # Handle array bounds
+        draw_rect = self.bb.intersected(widget.mat_bb)
+        # Define widget intersection
+        wbm_top = max(0, -widget.mat_bb.top())
+        wbm_left = max(0, -widget.mat_bb.left())
+        widget_bitmap = widget.draw()[
+            wbm_top : min(widget.mat_bb.height(), self.rows - widget.mat_bb.top()),
+            wbm_left : min(widget.mat_bb.width(), self.cols - widget.mat_bb.left())
+        ]
+        
         output_array[
-            widget.mat_bb.top():widget.mat_bb.bottom()+1,
-            widget.mat_bb.left():widget.mat_bb.right()+1, 
-            ] = widget.draw()
+            draw_rect.top() : draw_rect.bottom() + 1,
+            draw_rect.left() : draw_rect.right() + 1, 
+            ] = widget_bitmap
         
         # Update widget display box
-        widget.disp_bb = self._mat_to_disp(widget.mat_bb)
+        # widget.disp_bb = self._mat_to_disp(widget.mat_bb)
+        widget.setGeometry(self._mat_to_disp(widget.mat_bb))
+        # widget.move(self._mat_to_disp(widget.mat_bb).topLeft())
         widget.update()
 
         return output_array
@@ -236,35 +260,30 @@ class MatrixEmulatorWidget(MatrixWidget):
         '''
         row_range = range(self.rows)
         col_range = range(self.cols)
-        if bounding_rect: 
+        if bounding_rect is not None: 
             row_range = range(
                 max(0, bounding_rect.top()), 
-                max(self.rows, bounding_rect.bottom())
+                min(self.rows, bounding_rect.bottom())
                 )
             col_range = range(
                 max(0, bounding_rect.left()), 
-                max(self.cols, bounding_rect.right())
+                min(self.cols, bounding_rect.right())
                 )
-        for row in row_range:
-            for col in col_range:
-                # Select color value from highest layer
-                layer_idx = 0
-                color = None
-                while color is None and layer_idx > -(len(self._layers)):
-                    layer_idx -= 1
-                    color = self._layers[layer_idx][row][col]
-                    
-                if color is None or not isinstance(color, QColor):
-                    raise ValueError(f"Invalid color value at row {row}, col {col}")
-                self._colors[row][col] = color
+        for layer in (self._layers):
+            for row in row_range:
+                for col in col_range:
+                    color = layer[row][col]
+                    if color.isValid():
+                        self._colors[row][col] = color
 
-    def update_widget(self, widget_idx):
+    def fill(self, color):
         '''
-        Re-draw widget's color layer
+        Override parent fill 
         
-        :param widget_idx: Index of widget to update
+        :param color: String or QColor object representing the fill color
         '''
-        self._layers[widget_idx] = self.widgets[widget_idx].draw()
+        qcolor = color if isinstance(color, QColor) else QColor(color)
+        self._layers[0] = np.full((len(self._colors), len(self._colors[0])), qcolor)
 
     def dragEnterEvent(self, e):
         '''
@@ -286,7 +305,6 @@ class MatrixEmulatorWidget(MatrixWidget):
         pos = e.pos()
         widget = e.source()
         w_idx = self.widgets.index(widget)
-        print(f"Move event: {w_idx} to {pos}")
         # Update position attributes of widget itself
         src_bb = widget.mat_bb  # Store original position of matrix
         # Convert display coordinates to matrix coordinates
@@ -294,11 +312,9 @@ class MatrixEmulatorWidget(MatrixWidget):
         widget.mat_bb.moveTo(mat_pos)
         # Update corresponding draw layer
         self._layers[w_idx] = self._draw_array(widget)
-        print(w_idx)
         # Update matrix
         # Find bounding box of source + destination
         update_bb = src_bb.united(widget.mat_bb)
-        print(update_bb)
         # self.update_colors(update_bb)
         # self.update(update_bb)
         self.update_colors()
