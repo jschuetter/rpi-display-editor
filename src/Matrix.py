@@ -171,8 +171,9 @@ class MatrixEmulatorWidget(MatrixWidget):
         # List of widgets currently displaying
         # First element is None to represent background layer
         self.widgets = [ None ]
-        # clone of MatrixWidget._colors with list of pixel color values
-        # representing layers bottom-to-top
+        # Index of currently selected widget
+        self.selected_idx = None
+        # Store pixel values of widgets, with layer 0 being background
         self._layers = [ deepcopy(self._colors) ]
         # Accept drop events
         self.setAcceptDrops(True)
@@ -197,6 +198,14 @@ class MatrixEmulatorWidget(MatrixWidget):
         # widget.move(disp_bb.topLeft())
         widget.update()
         self.update_colors()
+
+    def get_selected(self):
+        '''
+        Returns selected widget
+        '''
+        return self.widgets[self.selected_idx]
+
+    #region draw_methods
 
     def _draw_array(self, widget):
         '''
@@ -285,6 +294,9 @@ class MatrixEmulatorWidget(MatrixWidget):
         qcolor = color if isinstance(color, QColor) else QColor(color)
         self._layers[0] = np.full((len(self._colors), len(self._colors[0])), qcolor)
 
+    #endregion
+    #region drag_methods
+
     def dragEnterEvent(self, e):
         '''
         Override default dragEnterEvent - accept drag
@@ -321,3 +333,8 @@ class MatrixEmulatorWidget(MatrixWidget):
         # self.update(update_bb)
         self.update_colors()
         self.update()
+
+        # ADD GUI UPDATE EVENT TRIGGER HERE
+
+    #endregion
+#endregion
