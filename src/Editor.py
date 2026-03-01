@@ -7,7 +7,7 @@ Holds source code for editor GUI
 
 import sys
 from PySide6 import QtCore, QtWidgets, QtGui
-from PySide6.QtWidgets import QApplication, QWidget, QLayoutItem, QGridLayout, QHBoxLayout, QLabel
+from PySide6.QtWidgets import QApplication, QWidget, QLayoutItem, QGridLayout, QHBoxLayout, QVBoxLayout, QLabel
 
 from src.Matrix import MatrixWidget, MatrixEmulatorWidget
 from src.Draggable import TextWidget, ImgWidget
@@ -30,13 +30,15 @@ class Editor(QApplication):
         self.matrix.add_widget(img)
 
         # Add editor menus
-        self.layersMenu = ScrollableMenu()
+        self.layersMenu = ScrollableMenu(QVBoxLayout, 200)
 
-        self.propertiesMenu = ScrollableMenu()
+        self.propertiesMenu = ScrollableMenu(QVBoxLayout, 200)
         self.posLabel = QLabel("Pos: ")
+        # self.propsLabel = QLabel()
         self.propertiesMenu.addWidget(self.posLabel)
+        # self.propertiesMenu.addWidget(self.propsLabel)
 
-        self.addMenu = ScrollableMenu(QHBoxLayout)
+        self.addMenu = ScrollableMenu(QHBoxLayout, None, 200)
 
         self.appLayout.addWidget(self.layersMenu, 0, 0)
         self.appLayout.addWidget(self.matrix, 0, 1)
@@ -45,6 +47,7 @@ class Editor(QApplication):
 
         # DEBUG TESTING
         self.matrix.selected_idx = -1
+        self.matrix.subscribe_selected_updates(self.update_props)
 
         self.container.show()
 
@@ -57,4 +60,5 @@ class Editor(QApplication):
         sw = self.matrix.get_selected()
         sw_pos = sw.mat_bb.topLeft()
         self.posLabel.setText(f"Pos: {sw_pos.x()}, {sw_pos.y()}")
-        print(f"Pos: {sw_pos.x()}, {sw_pos.y()}")
+        # self.propsLabel.setText('\n'.join(vars(sw)))
+        # print(vars(sw))

@@ -12,7 +12,7 @@ from PySide6.QtWidgets import QWidget, QGridLayout, QBoxLayout, QHBoxLayout, QVB
 
 class ScrollableMenu(QScrollArea):
     ALLOWED_LAYOUTS = (QGridLayout, QBoxLayout, QHBoxLayout, QVBoxLayout)
-    def __init__(self, layout=QVBoxLayout, parent=None):
+    def __init__(self, layout=QVBoxLayout, min_width = None, min_height = None, parent=None):
         '''
         Class constructor
         
@@ -23,7 +23,19 @@ class ScrollableMenu(QScrollArea):
             raise ValueError("layout attr must be one of " + self.ALLOWED_LAYOUTS)
         # Create constituent widgets
         self.container = QWidget()
+        # self.container.setMinimumSize(self.size())
         self.layout = layout(self.container)
+        # print(self.layout)
+        if min_width: 
+            self.container.setMinimumWidth(min_width)
+        else: 
+            self.container.setMinimumWidth(self.sizeHint().width())
+        if min_height: 
+            self.container.setMinimumHeight(min_height)
+        else: 
+            self.container.setMinimumHeight(self.sizeHint().height())
+        # print(self.size())
+        # print(self.sizeHint())
         
         # Set up basic layout
         self.setWidget(self.container)
@@ -34,3 +46,4 @@ class ScrollableMenu(QScrollArea):
         (e.g. for QGridLayout)
         '''
         self.layout.addWidget(item, *args)
+        self.container.adjustSize()

@@ -179,6 +179,9 @@ class MatrixEmulatorWidget(MatrixWidget):
         self.setAcceptDrops(True)
         # QRect defining matrix bounds
         self.bb = QRect(0, 0, self.cols, self.rows)
+        
+        # List of listener instances for selected widget updates
+        self.selected_listeners = []
 
     def add_widget(self, widget):
         '''
@@ -204,6 +207,32 @@ class MatrixEmulatorWidget(MatrixWidget):
         Returns selected widget
         '''
         return self.widgets[self.selected_idx]
+    
+    def subscribe_selected_updates(self, callback):
+        '''
+        Subscribes a callback method from another object to be called
+        when selected widget is updated
+        
+        :param callback: Method to execute on updates
+        '''
+        self.selected_listeners.append(callback)
+
+    def unsubscribe_selected_updates(self, callback):
+        '''
+        Unsubscribes a callback method from another object to be called
+        when selected widget is updated
+        
+        :param callback: Method to execute on updates
+        '''
+        self.selected_listeners.remove(callback)
+    
+    def trigger_selected_update(self, *args, **kwargs): 
+        '''
+        Calls listeners for selected widget update
+        '''
+        for listener in self.selected_listeners:
+            listener(*args, **kwargs)
+            
 
     #region draw_methods
 
@@ -335,6 +364,7 @@ class MatrixEmulatorWidget(MatrixWidget):
         self.update()
 
         # ADD GUI UPDATE EVENT TRIGGER HERE
+        self.trigger_selected_update()
 
     #endregion
 #endregion
