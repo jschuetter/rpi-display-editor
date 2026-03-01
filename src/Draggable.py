@@ -27,12 +27,19 @@ class DragWidget(QWidget):
         self.show_box = True
         # Generate random color for bounding box
         self.color = QColor.fromHsl(rand.randint(0, 360), 255, 153)
+        # Drag properties
+        self.dragging = False
+        self.drag_start = QPoint()
 
     def mousePressEvent(self, e):
         '''
         Handler for drag events        
         '''
         if e.button() == Qt.LeftButton:
+            # Set attributes
+            self.dragging = True
+            self.drag_start = e.pos()
+            
             drag = QDrag(self)
             mimeData = QMimeData()
             drag.setMimeData(mimeData)

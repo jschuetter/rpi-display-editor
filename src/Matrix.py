@@ -296,6 +296,7 @@ class MatrixEmulatorWidget(MatrixWidget):
         Accept drop event
         No need to do anything here - everything is handled in dragMoveEvent
         '''
+        e.source().dragging = False
         e.accept()
     
     def dragMoveEvent(self, e):
@@ -304,12 +305,13 @@ class MatrixEmulatorWidget(MatrixWidget):
         '''
         pos = e.pos()
         widget = e.source()
+        translate = pos - widget.drag_start # Calculate translation
         w_idx = self.widgets.index(widget)
         # Update position attributes of widget itself
         src_bb = widget.mat_bb  # Store original position of matrix
         # Convert display coordinates to matrix coordinates
-        mat_pos = self._disp_pos_to_mat(pos)
-        widget.mat_bb.moveTo(mat_pos)
+        translate_mat = self._disp_pos_to_mat(translate)
+        widget.mat_bb.moveTo(translate_mat)
         # Update corresponding draw layer
         self._layers[w_idx] = self._draw_array(widget)
         # Update matrix
