@@ -21,7 +21,7 @@ class Editor(QApplication):
 
         # Create application layout
         self.container = QWidget()
-        self.appLayout = QGridLayout(self.container)
+        self.app_layout = QGridLayout(self.container)
 
         # Add matrix emulator
         self.matrix = MatrixEmulatorWidget(px_size=8, pitch=2)
@@ -33,29 +33,29 @@ class Editor(QApplication):
         self.selected = img
 
         # Add editor menus
-        self.layersMenu = ScrollableMenu(QVBoxLayout, 200)
+        self.layers_menu = ScrollableMenu(QVBoxLayout, 200)
 
         # Properties Menu
-        self.propertiesMenu = ScrollableMenu(QVBoxLayout, 1000)
+        self.properties_menu = ScrollableMenu(QVBoxLayout, 1000)
         # Widget position
-        self.propMenuPos = QWidget()
-        self.propMenuPos.setFixedWidth(100)
-        self.propMenuPos.setLayout(QHBoxLayout())
-        self.propMenuPos.layout().addWidget(QLabel("Pos: "))
-        self.propPosX = QLineEdit()
-        self.propPosY = QLineEdit()
-        self.propPosX.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight)
-        self.propPosY.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight)
-        self.propMenuPos.layout().addWidget(self.propPosX)
-        self.propMenuPos.layout().addWidget(self.propPosY)
-        self.propertiesMenu.addWidget(self.propMenuPos)
+        self.propmenu_pos = QWidget()
+        self.propmenu_pos.setFixedWidth(100)
+        self.propmenu_pos.setLayout(QHBoxLayout())
+        self.propmenu_pos.layout().addWidget(QLabel("Pos: "))
+        self.prop_pos_x = QLineEdit()
+        self.prop_pos_y = QLineEdit()
+        self.prop_pos_x.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight)
+        self.prop_pos_y.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight)
+        self.propmenu_pos.layout().addWidget(self.prop_pos_x)
+        self.propmenu_pos.layout().addWidget(self.prop_pos_y)
+        self.properties_menu.addWidget(self.propmenu_pos)
 
-        self.addMenu = ScrollableMenu(QHBoxLayout, None, 200)
+        self.add_menu = ScrollableMenu(QHBoxLayout, None, 200)
 
-        self.appLayout.addWidget(self.layersMenu, 0, 0)
-        self.appLayout.addWidget(self.matrix, 0, 1)
-        self.appLayout.addWidget(self.propertiesMenu, 0, 2)
-        self.appLayout.addWidget(self.addMenu, 1, 1)
+        self.app_layout.addWidget(self.layers_menu, 0, 0)
+        self.app_layout.addWidget(self.matrix, 0, 1)
+        self.app_layout.addWidget(self.properties_menu, 0, 2)
+        self.app_layout.addWidget(self.add_menu, 1, 1)
 
         # DEBUG TESTING
         self.matrix.selected_idx = -1
@@ -71,7 +71,7 @@ class Editor(QApplication):
         '''
         sw = self.matrix.get_selected()
         sw_pos = sw.mat_bb.topLeft()
-        self.propPosX.setText(str(sw_pos.x()))
-        self.propPosY.setText(str(sw_pos.y()))
+        self.prop_pos_x.setText(str(sw_pos.x()))
+        self.prop_pos_y.setText(str(sw_pos.y()))
         # self.propsLabel.setText('\n'.join(vars(sw)))
         # print(vars(sw))
