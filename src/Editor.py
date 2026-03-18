@@ -7,7 +7,7 @@ Holds source code for editor GUI
 
 import sys
 from PySide6 import QtCore, QtWidgets, QtGui
-from PySide6.QtWidgets import QApplication, QWidget, QLayoutItem, QGridLayout, QHBoxLayout, QVBoxLayout, QLabel
+from PySide6.QtWidgets import QApplication, QWidget, QLayoutItem, QGridLayout, QHBoxLayout, QVBoxLayout, QLabel, QLineEdit
 
 from src.Matrix import MatrixWidget, MatrixEmulatorWidget
 from src.Draggable import TextWidget, ImgWidget
@@ -24,19 +24,31 @@ class Editor(QApplication):
         self.appLayout = QGridLayout(self.container)
 
         # Add matrix emulator
-        self.matrix = MatrixEmulatorWidget()
+        self.matrix = MatrixEmulatorWidget(px_size=8, pitch=2)
+
+        # DEV TESTING WIDGETS
         self.matrix.fill('blue')
         img = ImgWidget(15, 0, "./cloudy-day.png", 15, 15)
         self.matrix.add_widget(img)
+        self.selected = img
 
         # Add editor menus
         self.layersMenu = ScrollableMenu(QVBoxLayout, 200)
 
-        self.propertiesMenu = ScrollableMenu(QVBoxLayout, 200)
-        self.posLabel = QLabel("Pos: ")
-        # self.propsLabel = QLabel()
-        self.propertiesMenu.addWidget(self.posLabel)
-        # self.propertiesMenu.addWidget(self.propsLabel)
+        # Properties Menu
+        self.propertiesMenu = ScrollableMenu(QVBoxLayout, 1000)
+        # Widget position
+        self.propMenuPos = QWidget()
+        self.propMenuPos.setFixedWidth(100)
+        self.propMenuPos.setLayout(QHBoxLayout())
+        self.propMenuPos.layout().addWidget(QLabel("Pos: "))
+        self.propPosX = QLineEdit()
+        self.propPosY = QLineEdit()
+        self.propPosX.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight)
+        self.propPosY.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight)
+        self.propMenuPos.layout().addWidget(self.propPosX)
+        self.propMenuPos.layout().addWidget(self.propPosY)
+        self.propertiesMenu.addWidget(self.propMenuPos)
 
         self.addMenu = ScrollableMenu(QHBoxLayout, None, 200)
 
@@ -59,6 +71,7 @@ class Editor(QApplication):
         '''
         sw = self.matrix.get_selected()
         sw_pos = sw.mat_bb.topLeft()
-        self.posLabel.setText(f"Pos: {sw_pos.x()}, {sw_pos.y()}")
+        self.propPosX.setText(str(sw_pos.x()))
+        self.propPosY.setText(str(sw_pos.y()))
         # self.propsLabel.setText('\n'.join(vars(sw)))
         # print(vars(sw))

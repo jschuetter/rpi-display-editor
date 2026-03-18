@@ -16,7 +16,7 @@ from PySide6.QtGui import QPainter, QColor, QBrush, QPen
 from PySide6.QtCore import Qt, QSize, QRect, QPoint
 
 class MatrixWidget(QWidget):
-    def __init__(self, rows=32, cols=64, px_size=12, pitch=3, parent=None):
+    def __init__(self, px_size=12, pitch=3, rows=32, cols=64, parent=None):
         super().__init__(parent)
         self.rows = rows
         self.cols = cols
@@ -166,8 +166,8 @@ class MatrixEmulatorWidget(MatrixWidget):
     '''
     Extension of MatrixWidget that can store draggable widget objects for live updates
     '''
-    def __init__(self, parent=None):
-        super().__init__(parent=parent)
+    def __init__(self, px_size=12, pitch=3, parent=None):
+        super().__init__(px_size=px_size, pitch=pitch, parent=parent)
         # List of widgets currently displaying
         # First element is None to represent background layer
         self.widgets = [ None ]
