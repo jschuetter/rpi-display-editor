@@ -19,10 +19,9 @@ class DragWidget(QWidget):
     '''
     Parent class for various widget types 
     '''
-    def __init__(self, parent=None):
+    def __init__(self, name, parent=None):
         super().__init__(parent)
-        # self.x = x
-        # self.y = y
+        self.name = name
         self.mat_bb = QRect()  # Bounding box for matrix emulator
         self.show_box = True
         # Generate random color for bounding box
@@ -70,7 +69,7 @@ class DragWidget(QWidget):
         painter.drawRect(0, 0, self.width(), self.height())
 
 class TextWidget(DragWidget):
-    def __init__(self, x, y, text, font_path, color, parent=None):
+    def __init__(self, name, x, y, text, font_path, color, parent=None):
         '''
         Docstring for __init__
         
@@ -80,7 +79,7 @@ class TextWidget(DragWidget):
         :param font_path: path to font file
         :param color: color of text, as string or QColor
         '''
-        super().__init__(x, y, parent)
+        super().__init__(name, parent)
         self.font = Font(font_path)
         self.color = color if isinstance(color, QColor) else QColor(color)
         self.text = text
@@ -103,7 +102,7 @@ class TextWidget(DragWidget):
         return output_array
 
 class ImgWidget(DragWidget):
-    def __init__(self, x, y, path, w=None, h=None, parent=None):
+    def __init__(self, name, x, y, path, w=None, h=None, parent=None):
         '''
         Docstring for __init__
         
@@ -113,7 +112,7 @@ class ImgWidget(DragWidget):
         :param w: width to scale the image (optional)
         :param h: height to scale the image (optional)
         '''
-        super().__init__(parent)
+        super().__init__(name, parent)
         img = Image.open(path)
         if w is not None and h is not None:
             img.thumbnail((w, h), Image.LANCZOS)

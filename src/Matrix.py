@@ -366,5 +366,25 @@ class MatrixEmulatorWidget(MatrixWidget):
         # ADD GUI UPDATE EVENT TRIGGER HERE
         self.trigger_selected_update()
 
+    def update_widget(self, w): 
+        '''
+        Manually update selected widget
+        '''
+        # Update corresponding draw layer
+        w_idx = self.widgets.index(w)
+        self._layers[w_idx] = self._draw_array(w)
+        # Update matrix
+        self.update_colors()
+        self.update()
+
+    def update_selected(self): 
+        '''
+        Same as update_widget, but implicitly uses selected widget
+        '''
+        self._layers[self.selected_idx] = self._draw_array(self.get_selected())
+        # Update matrix
+        self.update_colors()
+        self.update()
+
     #endregion
 #endregion
