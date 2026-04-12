@@ -310,6 +310,9 @@ class MatrixEmulatorWidget(MatrixWidget):
             for row in row_range:
                 for col in col_range:
                     color = layer[row][col]
+                    if color is None: 
+                        # Construct invalid color -- so it's ignored
+                        color = QColor()
                     if color.isValid():
                         self._colors[row][col] = color
 

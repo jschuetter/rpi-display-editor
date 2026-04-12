@@ -31,7 +31,8 @@ class Editor(QApplication):
         self.matrix.fill('blue')
         img = ImgWidget("cloud-icon", 15, 0, "./cloudy-day.png", 15, 15)
         self.matrix.add_widget(img)
-        self.selected = img
+        text = TextWidget("hello-world", 32, 0, "Hello, World!", "./rpi-display-src/fonts/basic/4x6.bdf", "white")
+        self.matrix.add_widget(text)
 
         # Add editor menus
         self.layers_menu = ScrollableMenu(QVBoxLayout, 200)

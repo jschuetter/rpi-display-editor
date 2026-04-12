@@ -80,12 +80,12 @@ class TextWidget(DragWidget):
         :param color: color of text, as string or QColor
         '''
         super().__init__(name, parent)
-        self.font = Font(font_path)
+        self.font_ = Font(font_path)
         self.color = color if isinstance(color, QColor) else QColor(color)
         self.text = text
         bitmap_str = None
         for char in self.text:
-            bitmap_str = self.font.glyph(char).draw() if bitmap_str is None else bitmap_str.concat(self.font.glyph(char).draw())
+            bitmap_str = self.font_.glyph(char).draw() if bitmap_str is None else bitmap_str.concat(self.font_.glyph(char).draw())
         self.bitmap = bitmap_str.todata()
         self.mat_bb = QRect(x, y, len(self.bitmap[0]), len(self.bitmap))
 
@@ -95,8 +95,8 @@ class TextWidget(DragWidget):
         '''
         bitmap_str = None
         for char in self.text:
-            bitmap_str = self.font.glyph(char).draw() if bitmap_str is None else bitmap_str.concat(self.font.glyph(char).draw())
-        self.bitmap = bitmap_str.todata()
+            bitmap_str = self.font_.glyph(char).draw() if bitmap_str is None else bitmap_str.concat(self.font_.glyph(char).draw())
+        self.bitmap = np.array(bitmap_str.todata(2))
 
         output_array = np.where(self.bitmap == 1, self.color, None)
         return output_array
