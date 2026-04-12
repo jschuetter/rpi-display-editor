@@ -408,6 +408,9 @@ class MatrixEmulatorWidget(MatrixWidget):
             return
         
         self.widgets.insert(idx-1, self.widgets.pop(idx))
+        self._layers.insert(idx-1, self._layers.pop(idx))
+        if idx == self.selected_idx: 
+            self.selected_idx = idx-1
         self.trigger_selected_update()
         self.update_colors()
         self.update()
@@ -423,6 +426,9 @@ class MatrixEmulatorWidget(MatrixWidget):
             return
         
         self.widgets.insert(idx+1, self.widgets.pop(idx))
+        self._layers.insert(idx+1, self._layers.pop(idx))
+        if idx == self.selected_idx: 
+            self.selected_idx = idx+1
         self.trigger_selected_update()
         self.update_colors()
         self.update()
