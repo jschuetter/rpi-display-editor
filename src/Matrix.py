@@ -399,9 +399,9 @@ class MatrixEmulatorWidget(MatrixWidget):
         self.update_colors()
         self.update()
 
-    def move_widget_up(self, idx):
+    def move_widget_down(self, idx):
         '''
-        Moves the widget at the specified index up one (if possible)
+        Moves the widget at the specified index down one layer (if possible)
         '''
         if idx < 0 or idx >= len(self.widgets):
             raise IndexError("Widget index out of range")
@@ -420,9 +420,9 @@ class MatrixEmulatorWidget(MatrixWidget):
         self.update_colors()
         self.update()
 
-    def move_widget_down(self, idx):
+    def move_widget_up(self, idx):
         '''
-        Moves the widget at the specified index down one (if possible)
+        Moves the widget at the specified index up one layer (if possible)
         '''
         if idx < 0 or idx >= len(self.widgets):
             raise IndexError("Widget index out of range")

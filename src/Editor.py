@@ -109,7 +109,7 @@ class Editor(QApplication):
         Update layers menu with current widget list
         '''
         self.layers_menu.empty()
-        for w_idx in range(1, len(self.matrix.widgets)): # Start loop at 1 to ignore background widget(?)
+        for w_idx in range(len(self.matrix.widgets)-1, 0, -1): # Iterate backward, stop loop at 1 to ignore background widget(?)
             widget = self.matrix.widgets[w_idx]
             list_item = LayersItem(widget.name, self.matrix, w_idx)
             
