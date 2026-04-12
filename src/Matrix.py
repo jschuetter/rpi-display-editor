@@ -195,7 +195,6 @@ class MatrixEmulatorWidget(MatrixWidget):
         self._layers.append(self._draw_array(widget))
         widget.setParent(self)
         disp_bb = self._mat_to_disp(widget.mat_bb)
-        print(disp_bb)
         widget.setGeometry(disp_bb)
         widget.setMinimumSize(widget.size())
         # widget.move(disp_bb.topLeft())

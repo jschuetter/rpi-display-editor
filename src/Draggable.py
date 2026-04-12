@@ -129,7 +129,6 @@ class ImgWidget(DragWidget):
                 out[i, j] = QColor(*img_array_t[i, j])
 
         self.img_array = out
-        print(self.img_array.shape)
         self.mat_bb = QRect(x, y, self.img_array.shape[1], self.img_array.shape[0])
 
     def draw(self): 

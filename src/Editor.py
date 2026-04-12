@@ -81,7 +81,6 @@ class Editor(QApplication):
         Push properties defined in editor properties menu to
         currently selected widget
         '''
-        print(self.prop_pos_x.text(), self.prop_pos_y.text())
         sw = self.matrix.get_selected()
         sw.name = self.prop_name.text()
         x = self.prop_pos_x.text()
