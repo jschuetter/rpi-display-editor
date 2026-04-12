@@ -23,7 +23,7 @@ class DragWidget(QWidget):
         super().__init__(parent)
         self.name = name
         self.mat_bb = QRect()  # Bounding box for matrix emulator
-        self.show_box = True
+        self.show_box = False
         # Generate random color for bounding box
         self.color = QColor.fromHsl(rand.randint(0, 360), 255, 153)
         # Drag properties

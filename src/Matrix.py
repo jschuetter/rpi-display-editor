@@ -205,8 +205,11 @@ class MatrixEmulatorWidget(MatrixWidget):
         '''
         Sets selected widget index
         '''
+        self.get_selected().show_box = False
         self.selected_idx = idx
+        self.get_selected().show_box = True
         self.trigger_selected_update()
+        self.update()
 
     def get_selected(self):
         '''
@@ -411,6 +414,8 @@ class MatrixEmulatorWidget(MatrixWidget):
         self._layers.insert(idx-1, self._layers.pop(idx))
         if idx == self.selected_idx: 
             self.selected_idx = idx-1
+        elif idx-1 == self.selected_idx: 
+            self.selected_idx = idx
         self.trigger_selected_update()
         self.update_colors()
         self.update()
@@ -429,6 +434,8 @@ class MatrixEmulatorWidget(MatrixWidget):
         self._layers.insert(idx+1, self._layers.pop(idx))
         if idx == self.selected_idx: 
             self.selected_idx = idx+1
+        elif idx+1 == self.selected_idx: 
+            self.selected_idx = idx
         self.trigger_selected_update()
         self.update_colors()
         self.update()

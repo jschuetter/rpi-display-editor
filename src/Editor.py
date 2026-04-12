@@ -135,7 +135,7 @@ class LayersItem(QWidget):
         self.up_btn.setMinimumWidth(self.BTN_WIDTH)
 
         self.down_btn = QPushButton('↓')
-        self.up_btn.clicked.connect(lambda: self.mat.move_widget_down(self.w_idx))
+        self.down_btn.clicked.connect(lambda: self.mat.move_widget_down(self.w_idx))
         self.down_btn.setMinimumWidth(self.BTN_WIDTH)
 
         self.layout().addWidget(self.label)
