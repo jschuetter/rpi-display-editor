@@ -23,9 +23,7 @@ class ScrollableMenu(QScrollArea):
             raise ValueError("layout attr must be one of " + self.ALLOWED_LAYOUTS)
         # Create constituent widgets
         self.container = QWidget()
-        # self.container.setMinimumSize(self.size())
-        self.layout = layout(self.container)
-        # print(self.layout)
+        self.container.setLayout(layout())
         if min_width: 
             self.container.setMinimumWidth(min_width)
         else: 
@@ -34,8 +32,6 @@ class ScrollableMenu(QScrollArea):
             self.container.setMinimumHeight(min_height)
         else: 
             self.container.setMinimumHeight(self.sizeHint().height())
-        # print(self.size())
-        # print(self.sizeHint())
         
         # Set up basic layout
         self.setWidget(self.container)
@@ -45,5 +41,33 @@ class ScrollableMenu(QScrollArea):
         Pass addItem calls to layout attr with additional args
         (e.g. for QGridLayout)
         '''
-        self.layout.addWidget(item, *args)
+        self.container.layout().addWidget(item, *args)
         self.container.adjustSize()
+
+    def removeWidget(self, item, *args):
+        '''
+        Pass removeWidget calls to layout attr with additional args
+        '''
+        self.container.layout().removeWidget(item, *args)
+        item.removeLater()
+        self.container.adjustSize()
+
+    def empty(self):
+        '''
+        Remove all child widgets
+        '''
+        clearLayout(self.container.layout())
+        
+def clearLayout(layout):
+    '''
+    Clears a layout of all child widgets (and deletes them)
+    Helper definition for recursion in empty()
+    '''
+    while layout.count():
+        item = layout.takeAt(0)
+        widget = item.widget()
+        if widget is not None:
+            widget.deleteLater()
+        else: 
+            # Item is a layout
+            clearLayout(item.layout())

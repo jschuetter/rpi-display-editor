@@ -11,9 +11,9 @@ class MyWidget(QtWidgets.QWidget):
         self.text = QtWidgets.QLabel("Hello World",
                                         alignment=QtCore.Qt.AlignCenter)
 
-        self.layout = QtWidgets.QVBoxLayout(self)
-        self.layout.addWidget(self.text)
-        self.layout.addWidget(self.button)
+        self.setLayout(QtWidgets.QVBoxLayout(self))
+        self.layout().addWidget(self.text)
+        self.layout().addWidget(self.button)
 
         self.button.clicked.connect(self.magic)
 
