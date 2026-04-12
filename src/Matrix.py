@@ -201,6 +201,13 @@ class MatrixEmulatorWidget(MatrixWidget):
         widget.update()
         self.update_colors()
 
+    def set_selected(self, idx):
+        '''
+        Sets selected widget index
+        '''
+        self.selected_idx = idx
+        self.trigger_selected_update()
+
     def get_selected(self):
         '''
         Returns selected widget
@@ -350,6 +357,7 @@ class MatrixEmulatorWidget(MatrixWidget):
         widget = e.source()
         translate = pos - widget.drag_start # Calculate translation
         w_idx = self.widgets.index(widget)
+        self.set_selected(w_idx)
         # Update position attributes of widget itself
         src_bb = widget.mat_bb  # Store original position of matrix
         # Convert display coordinates to matrix coordinates
@@ -385,6 +393,36 @@ class MatrixEmulatorWidget(MatrixWidget):
         '''
         self._layers[self.selected_idx] = self._draw_array(self.get_selected())
         # Update matrix
+        self.update_colors()
+        self.update()
+
+    def move_widget_up(self, idx):
+        '''
+        Moves the widget at the specified index up one (if possible)
+        '''
+        if idx < 0 or idx >= len(self.widgets):
+            raise IndexError("Widget index out of range")
+        elif idx == 0: 
+            # Do nothing if already at start of list
+            return
+        
+        self.widgets.insert(idx-1, self.widgets.pop(idx))
+        self.trigger_selected_update()
+        self.update_colors()
+        self.update()
+
+    def move_widget_down(self, idx):
+        '''
+        Moves the widget at the specified index down one (if possible)
+        '''
+        if idx < 0 or idx >= len(self.widgets):
+            raise IndexError("Widget index out of range")
+        elif idx == len(self.widgets) - 1: 
+            # Do nothing if already at end of list
+            return
+        
+        self.widgets.insert(idx+1, self.widgets.pop(idx))
+        self.trigger_selected_update()
         self.update_colors()
         self.update()
 
