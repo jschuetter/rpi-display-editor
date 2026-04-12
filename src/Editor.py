@@ -6,9 +6,12 @@ Holds source code for editor GUI
 '''
 
 import sys
+import inspect
 from PySide6 import QtCore
 from PySide6.QtCore import Qt, QPoint, Slot
-from PySide6.QtWidgets import QApplication, QWidget, QLayoutItem, QGridLayout, QHBoxLayout, QVBoxLayout, QLabel, QLineEdit, QPushButton
+from PySide6.QtWidgets import QApplication, QWidget, \
+    QGridLayout, QHBoxLayout, QVBoxLayout, \
+    QLabel, QLineEdit, QPushButton, QDialog
 from PySide6.QtGui import QPainter, QPen, QBrush, QColor, QFont
 
 from src.Matrix import MatrixWidget, MatrixEmulatorWidget
@@ -62,6 +65,8 @@ class Editor(QApplication):
 
         ## Widget add menu
         self.add_menu = ScrollableMenu(QHBoxLayout, None, 200)
+        for w in (TextWidget, ImgWidget):
+            self.add_menu.addWidget(AddWidgetItem(w))
 
         self.applayout.addWidget(self.layers_menu, 0, 0)
         self.applayout.addWidget(self.matrix, 0, 1)
@@ -119,6 +124,9 @@ class Editor(QApplication):
             self.layers_menu.addWidget(list_item)
 
 class LayersItem(QWidget):
+    '''
+    Custom item class for entries in Layers panel
+    '''
     FONT = QFont("Arial", 11)
     BTN_WIDTH = 30
     def __init__(self, name, matrix, idx, parent=None):
@@ -168,3 +176,81 @@ class LayersItem(QWidget):
         painter.setPen(pen)
         painter.setBrush(QBrush(QColor(0, 0, 0, 0)))  # Transparent fill
         painter.drawRect(0, 0, self.width(), self.height())
+
+class AddWidgetItem(QPushButton):
+    '''
+    Custom item class for entries in Add Widget panel
+    '''
+    def __init__(self, widget, text=None, icon=None, parent=None):
+        if text is None:
+            # Default text is widget class name
+            text = widget.__name__
+            
+        if icon: 
+            super().__init__(icon, text, parent)
+        else: 
+            super().__init__(text, parent)
+
+        self.widget = widget
+        self.clicked.connect(self.create_modal)
+
+        self.modal = None
+        self.widget_args = []
+
+    @Slot(int)
+    def create_modal(self):
+        '''
+        Initialize widget creation modal
+        '''
+        self.modal = QDialog(self.parent())
+        self.param_inputs = []
+        modal_layout = QVBoxLayout()
+        params = inspect.signature(self.widget.__init__).parameters
+        for p_key, p in params.items(): 
+            if p_key in ('self', 'parent'): # Skip self & parent params
+                continue
+            print(p_key, p.name, p.default, bool(p.default), p.empty)
+            input_layout = QHBoxLayout()
+            input_layout.addWidget(QLabel(f"{p_key}: "))
+            if p.default != inspect.Parameter.empty:
+                input = QLineEdit(p.default)
+            else: 
+                input = QLineEdit()
+            input_layout.addWidget(input)
+            self.param_inputs.append(input)
+            # input_widget = QWidget()
+            # input_widget.setLayout(input_layout)
+            modal_layout.addLayout(input_layout)
+        self.err_lbl = QLabel()
+        modal_layout.addWidget(self.err_lbl)
+
+        btn_layout = QHBoxLayout()
+        cancel_btn = QPushButton("Cancel")
+        cancel_btn.clicked.connect(self.modal.reject)
+        accept_btn = QPushButton("Accept")
+        accept_btn.clicked.connect(self.verify_and_accept)
+        btn_layout.addWidget(cancel_btn)
+        btn_layout.addWidget(accept_btn)
+        # btn_widget = QWidget()
+        # btn_widget.setLayout(btn_layout)
+        modal_layout.addLayout(btn_layout)
+
+        self.modal.setLayout(modal_layout)
+        self.modal.open()
+
+    @Slot(int)
+    def verify_and_accept(self): 
+        '''
+        Verify provided arguments; 
+        give feedback if needed
+        '''
+        for input in self.param_inputs:
+            self.widget_args.append(input.text())
+        try: 
+            new_widget = self.widget(*self.widget_args)
+            self.matrix.add_widget(new_widget)
+            self.modal.accept()
+            return 1
+        except Exception as e: 
+            self.err_lbl.setText(str(e))
+            return -1

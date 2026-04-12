@@ -375,8 +375,6 @@ class MatrixEmulatorWidget(MatrixWidget):
         # self.update(update_bb)
         self.update_colors()
         self.update()
-
-        # ADD GUI UPDATE EVENT TRIGGER HERE
         self.trigger_selected_update()
 
     def update_widget(self, w): 
