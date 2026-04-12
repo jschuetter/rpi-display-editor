@@ -402,8 +402,9 @@ class MatrixEmulatorWidget(MatrixWidget):
         '''
         if idx < 0 or idx >= len(self.widgets):
             raise IndexError("Widget index out of range")
-        elif idx == 0: 
+        elif idx <= 1: 
             # Do nothing if already at start of list
+            # Ignore None object at position 0 (represents background)
             return
         
         self.widgets.insert(idx-1, self.widgets.pop(idx))
