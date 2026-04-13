@@ -37,31 +37,10 @@ class Editor(QApplication):
 
         # Add editor menus
         ## Layers menu
-        self.layers_menu = ScrollableMenu(QVBoxLayout, 400)
+        self.layers_menu = ScrollableMenu(QVBoxLayout, 400, 500)
 
         ## Properties Menu
-        self.properties_menu = ScrollableMenu(QVBoxLayout)
-
-        # Widget name
-        self.prop_name = QLineEdit()
-        self.prop_name.editingFinished.connect(self.push_props)
-        self.properties_menu.addWidget(QLabel("Name: "))
-        self.properties_menu.addWidget(self.prop_name)
-
-        # Widget position
-        self.propmenu_pos = QWidget()
-        self.propmenu_pos.setFixedWidth(100)
-        self.propmenu_pos.setLayout(QHBoxLayout())
-        self.propmenu_pos.layout().addWidget(QLabel("Pos: "))
-        self.prop_pos_x = QLineEdit()
-        self.prop_pos_y = QLineEdit()
-        self.prop_pos_x.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight)
-        self.prop_pos_y.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight)
-        self.prop_pos_x.editingFinished.connect(self.push_props)
-        self.prop_pos_y.editingFinished.connect(self.push_props)
-        self.propmenu_pos.layout().addWidget(self.prop_pos_x)
-        self.propmenu_pos.layout().addWidget(self.prop_pos_y)
-        self.properties_menu.addWidget(self.propmenu_pos)
+        self.properties_menu = ScrollableMenu(QVBoxLayout, None, 500)
 
         ## Widget add menu
         self.add_menu = ScrollableMenu(QHBoxLayout, None, 200)
@@ -74,9 +53,10 @@ class Editor(QApplication):
         self.applayout.addWidget(self.add_menu, 1, 1)
 
         # DEBUG TESTING
-        self.matrix.selected_idx = -1
         self.matrix.subscribe_selected_updates(self.pull_props)
         self.matrix.subscribe_selected_updates(self.update_layers)
+        self.matrix.subscribe_selected_updates(self.update_props)
+        self.matrix.set_selected(1)
 
         self.container.showMaximized()
 
@@ -89,13 +69,10 @@ class Editor(QApplication):
         currently selected widget
         '''
         sw = self.matrix.get_selected()
-        sw.name = self.prop_name.text()
-        x = self.prop_pos_x.text()
-        y = self.prop_pos_y.text()
-        x = 0 if x == '' else int(x)
-        y = 0 if y == '' else int(y)
+        sw.from_params({
+            key: value.text() for key, value in self.properties_inputs.items()
+        })
 
-        sw.mat_bb.moveTopLeft(QPoint(x, y))
         self.matrix.update_selected()
 
         
@@ -104,10 +81,26 @@ class Editor(QApplication):
         Update properties window based on state of matrix
         '''
         sw = self.matrix.get_selected()
-        self.prop_name.setText(sw.name)
-        sw_pos = sw.mat_bb.topLeft()
-        self.prop_pos_x.setText(str(sw_pos.x()))
-        self.prop_pos_y.setText(str(sw_pos.y()))
+        self.update_props()
+
+    def update_props(self):
+        '''
+        Update properties menu with current widget list
+        '''
+        self.properties_menu.empty()
+        self.properties_params = self.matrix.get_selected().params()
+        self.properties_inputs = {}
+
+        for key, value in self.properties_params.items(): 
+            input_layout = QHBoxLayout()
+            input_layout.addWidget(QLabel(f"{key}: "))
+            input = QLineEdit(str(value))
+            input.editingFinished.connect(self.push_props)
+            input_layout.addWidget(input)
+            self.properties_inputs[key] = input
+            self.properties_menu.addLayout(input_layout)
+        self.prop_err_lbl = QLabel()
+        self.properties_menu.addWidget(self.prop_err_lbl)
 
     def update_layers(self): 
         '''
@@ -209,7 +202,6 @@ class AddWidgetItem(QPushButton):
         for p_key, p in params.items(): 
             if p_key in ('self', 'parent'): # Skip self & parent params
                 continue
-            print(p_key, p.name, p.default, bool(p.default), p.empty)
             input_layout = QHBoxLayout()
             input_layout.addWidget(QLabel(f"{p_key}: "))
             if p.default != inspect.Parameter.empty:

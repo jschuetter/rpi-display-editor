@@ -6,7 +6,7 @@ Definition for ScrollableMenu class - to simplify/abstract design of overall app
 This class is intended to be used for creating sidebar menus
 '''
 
-from PySide6.QtWidgets import QWidget, QGridLayout, QBoxLayout, QHBoxLayout, QVBoxLayout, QScrollArea
+from PySide6.QtWidgets import QWidget, QLayout, QGridLayout, QBoxLayout, QHBoxLayout, QVBoxLayout, QScrollArea
 # from PySide6.QtGui import QPainter, QColor, QBrush, QPen
 # from PySide6.QtCore import Qt, QSize, QRect, QPoint
 
@@ -36,12 +36,20 @@ class ScrollableMenu(QScrollArea):
         # Set up basic layout
         self.setWidget(self.container)
 
-    def addWidget(self, item, *args):
+    def addWidget(self, item: QWidget, *args):
         '''
         Pass addItem calls to layout attr with additional args
         (e.g. for QGridLayout)
         '''
         self.container.layout().addWidget(item, *args)
+        self.container.adjustSize()
+
+    def addLayout(self, item: QLayout, *args):
+        '''
+        Pass addItem calls to layout attr with additional args
+        (e.g. for QGridLayout)
+        '''
+        self.container.layout().addLayout(item, *args)
         self.container.adjustSize()
 
     def removeWidget(self, item, *args):

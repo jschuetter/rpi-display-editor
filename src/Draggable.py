@@ -25,11 +25,30 @@ class DragWidget(QWidget):
         self.name = name
         self.mat_bb = QRect()  # Bounding box for matrix emulator
         self.show_box = False
-        # Generate random color for bounding box
-        self.color = QColor.fromHsl(rand.randint(0, 360), 255, 153)
         # Drag properties
         self.dragging = False
         self.drag_start = QPoint()
+
+    def params(self): 
+        '''
+        Return custom param dict
+        Empty in base class - no additional parameters to report
+        '''
+        return {
+            'name': self.name,
+            'x': self.mat_bb.left(),
+            'y': self.mat_bb.top()
+        }
+
+    def from_params(self, param_dict):
+        '''
+        Update params based on dict (same schema as params())
+        '''
+        self.name = param_dict['name']
+        self.mat_bb.moveTopLeft(
+            param_dict['x'],
+            param_dict['y']
+        )
 
     def mousePressEvent(self, e):
         '''
@@ -81,6 +100,7 @@ class TextWidget(DragWidget):
         :param color: color of text, as string or QColor
         '''
         super().__init__(name, parent)
+        self.font_path = font_path
         self.font_ = Font(font_path)
         self.color = color if isinstance(color, QColor) else QColor(color)
         self.text = text
@@ -89,6 +109,33 @@ class TextWidget(DragWidget):
             bitmap_str = self.font_.glyph(char).draw() if bitmap_str is None else bitmap_str.concat(self.font_.glyph(char).draw())
         self.bitmap = bitmap_str.todata()
         self.mat_bb = QRect(x, y, len(self.bitmap[0]), len(self.bitmap))
+
+    def params(self): 
+        '''
+        Return custom param dict
+        '''
+        return {
+            'name': self.name,
+            'x': self.mat_bb.left(),
+            'y': self.mat_bb.top(),
+            'text': self.text,
+            'font': self.font_path,
+            'color': self.color.rgb()
+        }
+    
+    def from_params(self, param_dict):
+        '''
+        Update params based on dict (same schema as params())
+        '''
+        self.name = param_dict['name']
+        self.mat_bb.moveTopLeft(QPoint(
+            int(param_dict['x']),
+            int(param_dict['y'])
+        ))
+        self.text = param_dict['text']
+        self.font_path = param_dict['font']
+        self.font_ = Font(self.font_path)
+        self.color = QColor.fromString(param_dict['color'])
 
     def draw(self):
         '''
@@ -103,7 +150,7 @@ class TextWidget(DragWidget):
         return output_array
 
 class ImgWidget(DragWidget):
-    def __init__(self, name, x, y, path, w=None, h=None, parent=None):
+    def __init__(self, name, x, y, path, width=None, height=None, parent=None):
         '''
         Docstring for __init__
         
@@ -114,13 +161,24 @@ class ImgWidget(DragWidget):
         :param h: height to scale the image (optional)
         '''
         super().__init__(name, parent)
-        img = Image.open(path)
-        if w is not None and h is not None:
-            img.thumbnail((w, h), Image.LANCZOS)
-        elif w is not None and h is None:
-            img.thumbnail((w, w), Image.LANCZOS)
-        elif w is None and h is not None:
-            img.thumbnail((h, h), Image.LANCZOS)
+        self.img_path = path
+        self.w = width
+        self.h = height
+
+        self.img_array = self.process_image_from_path()
+        self.mat_bb = QRect(x, y, self.img_array.shape[1], self.img_array.shape[0])
+
+    def process_image_from_path(self):
+        '''
+        Process image into array object
+        '''
+        img = Image.open(self.img_path)
+        if self.w is not None and self.h is not None:
+            img.thumbnail((self.w, self.h), Image.LANCZOS)
+        elif self.w is not None and self.h is None:
+            img.thumbnail((self.w, self.w), Image.LANCZOS)
+        elif self.w is None and self.h is not None:
+            img.thumbnail((self.h, self.h), Image.LANCZOS)
         
         img_array_t = np.array(img)  # temp image array
         # Process image array into QColor values
@@ -128,12 +186,38 @@ class ImgWidget(DragWidget):
         for i in range(img_array_t.shape[0]):
             for j in range(img_array_t.shape[1]):
                 out[i, j] = QColor(*img_array_t[i, j])
-
-        self.img_array = out
-        self.mat_bb = QRect(x, y, self.img_array.shape[1], self.img_array.shape[0])
+        
+        return out
 
     def draw(self): 
         '''
         Output widget bitmap array
         '''
         return self.img_array
+    
+    def params(self): 
+        '''
+        Return custom param dict
+        '''
+        return {
+            'name': self.name,
+            'x': self.mat_bb.left(),
+            'y': self.mat_bb.top(),
+            'path': self.img_path,
+            'width': self.w,
+            'height': self.h
+        }
+    
+    def from_params(self, param_dict):
+        '''
+        Update params based on dict (same schema as params())
+        '''
+        self.name = param_dict['name']
+        self.mat_bb.moveTopLeft(QPoint(
+            int(param_dict['x']),
+            int(param_dict['y'])
+        ))
+        self.w = int(param_dict['width'])
+        self.h = int(param_dict['height'])
+        self.img_path = param_dict['path']
+        self.img_array = self.process_image_from_path()
