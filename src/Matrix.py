@@ -205,7 +205,8 @@ class MatrixEmulatorWidget(MatrixWidget):
         '''
         Sets selected widget index
         '''
-        self.get_selected().show_box = False
+        if self.selected_idx is not None: 
+            self.get_selected().show_box = False
         self.selected_idx = idx
         self.get_selected().show_box = True
         self.trigger_selected_update()

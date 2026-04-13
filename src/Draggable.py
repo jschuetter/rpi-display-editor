@@ -19,6 +19,7 @@ class DragWidget(QWidget):
     '''
     Parent class for various widget types 
     '''
+    BOX_COLOR = QColor(255, 145, 0)
     def __init__(self, name, parent=None):
         super().__init__(parent)
         self.name = name
@@ -62,7 +63,7 @@ class DragWidget(QWidget):
 
         painter = QPainter(self)
         painter.setRenderHint(QPainter.Antialiasing)
-        pen = QPen(self.color)
+        pen = QPen(self.BOX_COLOR)
         pen.setWidth(5)
         painter.setPen(pen)
         painter.setBrush(QBrush(QColor(0, 0, 0, 0)))  # Transparent fill
