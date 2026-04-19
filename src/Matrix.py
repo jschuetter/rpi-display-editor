@@ -255,20 +255,21 @@ class MatrixEmulatorWidget(MatrixWidget):
         '''
         output_array = np.full((len(self._colors), len(self._colors[0])), QColor("invalid"))
         # Handle array bounds
-        draw_rect = self.bb.intersected(widget.mat_bb)
         # Define widget intersection
         wbm_top = max(0, -widget.mat_bb.top())
         wbm_left = max(0, -widget.mat_bb.left())
-        widget_bitmap = widget.draw()[
+        full_draw = widget.draw()
+        widget_bitmap = full_draw[
             wbm_top : min(widget.mat_bb.height(), self.rows - widget.mat_bb.top()),
             wbm_left : min(widget.mat_bb.width(), self.cols - widget.mat_bb.left())
         ]
         
+        draw_rect = self.bb.intersected(widget.mat_bb)
         output_array[
             draw_rect.top() : draw_rect.bottom() + 1,
             draw_rect.left() : draw_rect.right() + 1, 
             ] = widget_bitmap
-        
+
         # Update widget display box
         # widget.disp_bb = self._mat_to_disp(widget.mat_bb)
         widget.setGeometry(self._mat_to_disp(widget.mat_bb))
