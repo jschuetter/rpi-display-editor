@@ -116,11 +116,27 @@ class TextWidget(DragWidget):
         self.font_ = Font(font_path)
         self.color = color if isinstance(color, QColor) else QColor(color)
         self.text = text
+        self.bitmap = None
+        self.update_bitmap()
+        self.mat_bb = QRect(int(x), int(y), len(self.bitmap[0]), len(self.bitmap))
+
+    def update_bitmap(self): 
+        '''
+        Update bitmap attribute using current attribute values
+        '''
         bitmap_str = None
         for char in self.text:
             bitmap_str = self.font_.glyph(char).draw() if bitmap_str is None else bitmap_str.concat(self.font_.glyph(char).draw())
-        self.bitmap = bitmap_str.todata()
-        self.mat_bb = QRect(x, y, len(self.bitmap[0]), len(self.bitmap))
+        self.bitmap = bitmap_str.todata(2)
+        return self.bitmap
+    
+    def update_bb(self): 
+        '''
+        Update bounding box based on current bitmap
+        '''
+        self.mat_bb.setHeight(len(self.bitmap))
+        self.mat_bb.setWidth(len(self.bitmap[0]))
+        return (self.mat_bb.width(), self.mat_bb.height())
 
     def params(self): 
         '''
@@ -178,6 +194,7 @@ class TextWidget(DragWidget):
         for char in self.text:
             bitmap_str = self.font_.glyph(char).draw() if bitmap_str is None else bitmap_str.concat(self.font_.glyph(char).draw())
         self.bitmap = np.array(bitmap_str.todata(2))
+        self.update_bb()
 
         output_array = np.where(self.bitmap == 1, self.color, None)
         return output_array
