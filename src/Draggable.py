@@ -6,6 +6,7 @@ PyQt widget class definition for drag-and-drop widgets
 '''
 
 import os
+from pathlib import Path
 from bdfparser import Font
 from PIL import Image
 import numpy as np
@@ -32,12 +33,21 @@ class DragWidget(QWidget):
     def params(self): 
         '''
         Return custom param dict
-        Empty in base class - no additional parameters to report
+        Must have format key: {attr, type}
         '''
         return {
-            'name': self.name,
-            'x': self.mat_bb.left(),
-            'y': self.mat_bb.top()
+            'name': {
+                'value': self.name,
+                'type': 'str',
+            },
+            'x': {
+                'value': self.mat_bb.left(),
+                'type': 'int',
+            },
+            'y': {
+                'value': self.mat_bb.top(),
+                'type': 'int',
+            },
         }
 
     def from_params(self, param_dict):
@@ -89,7 +99,9 @@ class DragWidget(QWidget):
         painter.drawRect(0, 0, self.width(), self.height())
 
 class TextWidget(DragWidget):
-    def __init__(self, name, x, y, text, font_path, color, parent=None):
+    FONTS_PATH = './rpi-display-src/fonts'
+    
+    def __init__(self, name, x, y, text, font_path=os.path.join(FONTS_PATH, 'basic/4x6.bdf'), color="#ffffff", parent=None):
         '''
         Docstring for __init__
         
@@ -115,12 +127,31 @@ class TextWidget(DragWidget):
         Return custom param dict
         '''
         return {
-            'name': self.name,
-            'x': self.mat_bb.left(),
-            'y': self.mat_bb.top(),
-            'text': self.text,
-            'font': self.font_path,
-            'color': self.color.rgb()
+            'name': {
+                'value': self.name,
+                'type': 'str',
+            },
+            'x': {
+                'value': self.mat_bb.left(),
+                'type': 'int',
+            },
+            'y': {
+                'value': self.mat_bb.top(),
+                'type': 'int',
+            },
+            'text': {
+                'value': self.text,
+                'type': 'str',
+            },
+            'font': {
+                'value': self.font_path,
+                'type': 'enum',
+                'options': self.get_fonts_list(),
+            },
+            'color': {
+                'value': self.color.name(),
+                'type': 'str',
+            }
         }
     
     def from_params(self, param_dict):
@@ -128,14 +159,16 @@ class TextWidget(DragWidget):
         Update params based on dict (same schema as params())
         '''
         self.name = param_dict['name']
+        self.text = param_dict['text']
+        self.font_path = os.path.join(self.FONTS_PATH, param_dict['font'])
+        self.font_ = Font(self.font_path)
+        self.color = QColor.fromString(param_dict['color'])
+        self.update_bitmap()
+        self.update_bb()
         self.mat_bb.moveTopLeft(QPoint(
             int(param_dict['x']),
             int(param_dict['y'])
         ))
-        self.text = param_dict['text']
-        self.font_path = param_dict['font']
-        self.font_ = Font(self.font_path)
-        self.color = QColor.fromString(param_dict['color'])
 
     def draw(self):
         '''
@@ -148,6 +181,14 @@ class TextWidget(DragWidget):
 
         output_array = np.where(self.bitmap == 1, self.color, None)
         return output_array
+    
+    def get_fonts_list(self): 
+        '''
+        Get list of font paths from specified directory
+        '''
+        font_path = Path(self.FONTS_PATH)
+        font_files = font_path.rglob("*.bdf")
+        return [os.path.relpath(f, font_path) for f in font_files]
 
 class ImgWidget(DragWidget):
     def __init__(self, name, x, y, path, width=None, height=None, parent=None):
@@ -200,12 +241,30 @@ class ImgWidget(DragWidget):
         Return custom param dict
         '''
         return {
-            'name': self.name,
-            'x': self.mat_bb.left(),
-            'y': self.mat_bb.top(),
-            'path': self.img_path,
-            'width': self.w,
-            'height': self.h
+            'name': {
+                'value': self.name,
+                'type': 'str',
+            },
+            'x': {
+                'value': self.mat_bb.left(),
+                'type': 'int',
+            },
+            'y': {
+                'value': self.mat_bb.top(),
+                'type': 'int',
+            },
+            'path': {
+                'value': self.img_path,
+                'type': 'str',
+            },
+            'width': {
+                'value': self.w,
+                'type': 'str',
+            },
+            'height': {
+                'value': self.h,
+                'type': 'str',
+            },
         }
     
     def from_params(self, param_dict):

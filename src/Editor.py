@@ -11,7 +11,7 @@ from PySide6 import QtCore
 from PySide6.QtCore import Qt, QPoint, Slot
 from PySide6.QtWidgets import QApplication, QWidget, \
     QGridLayout, QHBoxLayout, QVBoxLayout, \
-    QLabel, QLineEdit, QPushButton, QDialog
+    QLabel, QLineEdit, QPushButton, QDialog, QComboBox
 from PySide6.QtGui import QPainter, QPen, QBrush, QColor, QFont
 
 from src.Matrix import MatrixWidget, MatrixEmulatorWidget
@@ -45,7 +45,7 @@ class Editor(QApplication):
         ## Widget add menu
         self.add_menu = ScrollableMenu(QHBoxLayout, None, 200)
         for w in (TextWidget, ImgWidget):
-            self.add_menu.addWidget(AddWidgetItem(w))
+            self.add_menu.addWidget(AddWidgetItem(self, w))
 
         self.applayout.addWidget(self.layers_menu, 0, 0)
         self.applayout.addWidget(self.matrix, 0, 1)
@@ -70,8 +70,13 @@ class Editor(QApplication):
         '''
         sw = self.matrix.get_selected()
         sw.from_params({
-            key: value.text() for key, value in self.properties_inputs.items()
+            key: value.currentText() if type(value) == QComboBox else value.text() 
+             for key, value in self.properties_inputs.items()
         })
+        params = {
+            key: value.currentText() if type(value) == QComboBox else value.text() 
+             for key, value in self.properties_inputs.items()
+        }
 
         self.matrix.update_selected()
 
@@ -91,11 +96,20 @@ class Editor(QApplication):
         self.properties_params = self.matrix.get_selected().params()
         self.properties_inputs = {}
 
-        for key, value in self.properties_params.items(): 
+        for key, obj in self.properties_params.items(): 
             input_layout = QHBoxLayout()
             input_layout.addWidget(QLabel(f"{key}: "))
-            input = QLineEdit(str(value))
-            input.editingFinished.connect(self.push_props)
+            if obj['type'] == 'enum': 
+                input = QComboBox()
+                if 'options' not in obj: 
+                    raise ValueError(f'Parameter {key} of type \'enum\' is missing options list.')
+
+                for opt in obj['options']:
+                    input.addItem(opt)
+                input.currentIndexChanged.connect(self.push_props)
+            else: 
+                input = QLineEdit(str(obj['value']))
+                input.editingFinished.connect(self.push_props)
             input_layout.addWidget(input)
             self.properties_inputs[key] = input
             self.properties_menu.addLayout(input_layout)
@@ -173,8 +187,10 @@ class LayersItem(QWidget):
 class AddWidgetItem(QPushButton):
     '''
     Custom item class for entries in Add Widget panel
+    Param editor_obj stores reference to Editor instance
+    for adding widget on acceptw
     '''
-    def __init__(self, widget, text=None, icon=None, parent=None):
+    def __init__(self, editor_obj, widget, text=None, icon=None, parent=None):
         if text is None:
             # Default text is widget class name
             text = widget.__name__
@@ -184,6 +200,7 @@ class AddWidgetItem(QPushButton):
         else: 
             super().__init__(text, parent)
 
+        self.editor = editor_obj
         self.widget = widget
         self.clicked.connect(self.create_modal)
 
@@ -210,8 +227,6 @@ class AddWidgetItem(QPushButton):
                 input = QLineEdit()
             input_layout.addWidget(input)
             self.param_inputs.append(input)
-            # input_widget = QWidget()
-            # input_widget.setLayout(input_layout)
             modal_layout.addLayout(input_layout)
         self.err_lbl = QLabel()
         modal_layout.addWidget(self.err_lbl)
@@ -223,8 +238,6 @@ class AddWidgetItem(QPushButton):
         accept_btn.clicked.connect(self.verify_and_accept)
         btn_layout.addWidget(cancel_btn)
         btn_layout.addWidget(accept_btn)
-        # btn_widget = QWidget()
-        # btn_widget.setLayout(btn_layout)
         modal_layout.addLayout(btn_layout)
 
         self.modal.setLayout(modal_layout)
@@ -236,11 +249,16 @@ class AddWidgetItem(QPushButton):
         Verify provided arguments; 
         give feedback if needed
         '''
+        self.widget_args = []
         for input in self.param_inputs:
-            self.widget_args.append(input.text())
+            if type(input) == QComboBox: 
+                self.widget_args.append(input.currentText())
+            else: 
+                self.widget_args.append(input.text())
         try: 
             new_widget = self.widget(*self.widget_args)
-            self.matrix.add_widget(new_widget)
+            self.editor.matrix.add_widget(new_widget)
+            self.editor.matrix.set_selected(-1)
             self.modal.accept()
             return 1
         except Exception as e: 
