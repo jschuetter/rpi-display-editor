@@ -258,7 +258,7 @@ class AddWidgetItem(QPushButton):
         try: 
             new_widget = self.widget(*self.widget_args)
             self.editor.matrix.add_widget(new_widget)
-            self.editor.matrix.set_selected(-1)
+            self.editor.matrix.set_selected(len(self.editor.matrix.widgets)-1)
             self.modal.accept()
             return 1
         except Exception as e: 

@@ -198,6 +198,7 @@ class MatrixEmulatorWidget(MatrixWidget):
         widget.setGeometry(disp_bb)
         widget.setMinimumSize(widget.size())
         # widget.move(disp_bb.topLeft())
+        widget.show()
         widget.update()
         self.update_colors()
 
