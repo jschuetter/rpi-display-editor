@@ -208,6 +208,20 @@ class MatrixEmulatorWidget(MatrixWidget):
         widget.update()
         self.update_colors()
 
+    def delete_widget(self, widget_idx): 
+        '''
+        Delete widget at the specified index
+        '''
+        if self.selected_idx == widget_idx: 
+            self.selected_idx = None
+
+        w = self.widgets.pop(widget_idx)
+        self._layers.pop(widget_idx)
+        w.deleteLater()
+        self.update_colors()
+        self.trigger_selected_update()
+        self.update()
+
     def clear_widgets(self): 
         '''
         Helper method for removing all widgets
@@ -218,6 +232,8 @@ class MatrixEmulatorWidget(MatrixWidget):
             w.deleteLater()
             
         self.selected_idx = None
+        self.update_colors()
+        self.update()
 
     def set_selected(self, idx):
         '''

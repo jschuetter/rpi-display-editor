@@ -260,11 +260,17 @@ class LayersItem(QWidget):
         self.down_btn.clicked.connect(lambda: self.mat.move_widget_down(self.w_idx))
         self.down_btn.setMinimumWidth(self.BTN_WIDTH)
 
+        self.del_btn = QPushButton('🗑')
+        self.del_btn.clicked.connect(lambda: self.mat.delete_widget(self.w_idx))
+        self.del_btn.setMinimumWidth(self.BTN_WIDTH)
+
         self.layout().addWidget(self.label)
         self.layout().addStretch(20)
         self.layout().addWidget(self.up_btn)
         self.layout().setStretch(2, 1)
         self.layout().addWidget(self.down_btn)
+        self.layout().setStretch(3, 1)
+        self.layout().addWidget(self.del_btn)
         self.layout().setStretch(3, 1)
 
     def mousePressEvent(self, e):
