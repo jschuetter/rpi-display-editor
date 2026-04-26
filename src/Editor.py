@@ -23,6 +23,7 @@ import os
 
 class Editor(QApplication): 
     DEF_SAVE_DIR = './save/'
+    DEFAULT_TITLE = "Matrix Editor"
     
     def __init__(self):
         super().__init__([])
@@ -47,22 +48,26 @@ class Editor(QApplication):
 
         # Add navbar
         menu_bar = QMenuBar()
-        file_nav = menu_bar.addMenu("File")
 
         open_action = QAction("&Open")
         open_action.setStatusTip("Open composition from JSON")
         open_action.triggered.connect(self.open_file)
-        file_nav.addAction(open_action)
+        menu_bar.addAction(open_action)
+
+        close_action = QAction("Close")
+        close_action.setStatusTip("Save composition to JSON and close")
+        close_action.triggered.connect(self.close_file)
+        menu_bar.addAction(close_action)
         
         save_action = QAction("&Save")
         save_action.setStatusTip("Save composition to JSON")
         save_action.triggered.connect(self.save_file)
-        file_nav.addAction(save_action)
+        menu_bar.addAction(save_action)
 
         save_as_action = QAction("Save As")
         save_as_action.setStatusTip("Save composition to new JSON")
         save_as_action.triggered.connect(self.save_file_as)
-        file_nav.addAction(save_as_action)
+        menu_bar.addAction(save_as_action)
 
         self.applayout.setMenuBar(menu_bar)
 
@@ -90,6 +95,7 @@ class Editor(QApplication):
         self.matrix.set_selected(1)
 
         self.container.setLayout(self.applayout)
+        self.container.setWindowTitle(self.DEFAULT_TITLE)
         self.container.showMaximized()
 
         sys.exit(self.exec())
@@ -236,6 +242,41 @@ class Editor(QApplication):
 
         self.file_name = file_name
         self.container.setWindowTitle(os.path.basename(self.file_name))
+
+    @Slot(int)
+    def close_file(self): 
+        '''
+        Save file to JSON and clear matrix display
+        '''
+        modal = QDialog(self.container)
+        layout = QVBoxLayout()
+        layout.addWidget(QLabel("Would you like to save your composition?"))
+
+        button_layout = QHBoxLayout()
+
+        accept_btn = QPushButton("Yes")
+        accept_btn.clicked.connect(lambda: self.save_file())
+        accept_btn.clicked.connect(modal.accept)
+        button_layout.addWidget(accept_btn)
+
+        cancel_btn = QPushButton("No")
+        cancel_btn.clicked.connect(modal.reject)
+        button_layout.addWidget(cancel_btn)
+
+        layout.addLayout(button_layout)
+        modal.setLayout(layout)
+        modal.open()
+
+        modal.finished.connect(self.reset_editor)
+    
+    @Slot(int)
+    def reset_editor(self): 
+        '''
+        Reset editor after closing composition
+        '''
+        self.matrix.clear_widgets()
+        self.file_name = None
+        self.container.setWindowTitle(self.DEFAULT_TITLE)
 
 class LayersItem(QWidget):
     '''
