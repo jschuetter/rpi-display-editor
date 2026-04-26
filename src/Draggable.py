@@ -246,11 +246,11 @@ class ImgWidget(DragWidget):
         '''
         super().__init__(name, parent)
         self.img_path = path
-        self.w = width
-        self.h = height
+        self.w = int(width)
+        self.h = int(height)
 
         self.img_array = self.process_image_from_path()
-        self.mat_bb = QRect(x, y, self.img_array.shape[1], self.img_array.shape[0])
+        self.mat_bb = QRect(int(x), int(y), self.img_array.shape[1], self.img_array.shape[0])
 
     def process_image_from_path(self):
         '''
