@@ -234,6 +234,8 @@ class MatrixEmulatorWidget(MatrixWidget):
         '''
         Returns selected widget
         '''
+        if self.selected_idx is None: 
+            return None
         return self.widgets[self.selected_idx]
     
     def subscribe_selected_updates(self, callback):

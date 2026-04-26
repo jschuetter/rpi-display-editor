@@ -125,7 +125,8 @@ class Editor(QApplication):
         Update properties menu with current widget list
         '''
         self.properties_menu.empty()
-        self.properties_params = self.matrix.get_selected().params()
+        sw = self.matrix.get_selected()
+        self.properties_params = self.matrix.get_selected().params() if sw is not None else {}
         self.properties_inputs = {}
 
         for key, obj in self.properties_params.items(): 
