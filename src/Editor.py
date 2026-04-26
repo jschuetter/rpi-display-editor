@@ -64,11 +64,6 @@ class Editor(QApplication):
         save_as_action.triggered.connect(self.save_file_as)
         file_nav.addAction(save_as_action)
 
-        export_action = QAction("&Export")
-        export_action.setStatusTip("Export composition to Python class")
-        export_action.triggered.connect(self.export_file)
-        file_nav.addAction(export_action)
-
         self.applayout.setMenuBar(menu_bar)
 
         # Add editor menus
@@ -240,13 +235,6 @@ class Editor(QApplication):
 
         self.file_name = file_name
         self.container.setWindowTitle(os.path.basename(self.file_name))
-
-    @Slot(int)
-    def export_file(self): 
-        '''
-        Export composition to Python class for use on display
-        '''
-        pass
 
 class LayersItem(QWidget):
     '''
