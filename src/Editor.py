@@ -7,18 +7,23 @@ Holds source code for editor GUI
 
 import sys
 import inspect
+import json
+import importlib
 from PySide6 import QtCore
 from PySide6.QtCore import Qt, QPoint, Slot
-from PySide6.QtWidgets import QApplication, QWidget, \
+from PySide6.QtWidgets import QApplication, QWidget, QMainWindow, \
     QGridLayout, QHBoxLayout, QVBoxLayout, \
-    QLabel, QLineEdit, QPushButton, QDialog, QComboBox
-from PySide6.QtGui import QPainter, QPen, QBrush, QColor, QFont
+    QMenuBar, QMenu, QFileDialog, QLabel, QLineEdit, QPushButton, QDialog, QComboBox
+from PySide6.QtGui import QPainter, QPen, QBrush, QColor, QFont, QAction
 
 from src.Matrix import MatrixWidget, MatrixEmulatorWidget
 from src.Draggable import TextWidget, ImgWidget
 from src.ScrollableMenu import ScrollableMenu
+import os
 
 class Editor(QApplication): 
+    DEF_SAVE_DIR = './save/'
+    
     def __init__(self):
         super().__init__([])
         # Create application layout
@@ -34,6 +39,37 @@ class Editor(QApplication):
         self.matrix.add_widget(img)
         text = TextWidget("hello-world", 32, 0, "Hello, World!", "./rpi-display-src/fonts/basic/4x6.bdf", "white")
         self.matrix.add_widget(text)
+
+        # Composition metadata
+        self.file_name = None
+        # Create default save directory if does not exist
+        os.makedirs(self.DEF_SAVE_DIR, exist_ok=True)
+
+        # Add navbar
+        menu_bar = QMenuBar()
+        file_nav = menu_bar.addMenu("File")
+
+        open_action = QAction("&Open")
+        open_action.setStatusTip("Open composition from JSON")
+        open_action.triggered.connect(self.open_file)
+        file_nav.addAction(open_action)
+        
+        save_action = QAction("&Save")
+        save_action.setStatusTip("Save composition to JSON")
+        save_action.triggered.connect(self.save_file)
+        file_nav.addAction(save_action)
+
+        save_as_action = QAction("Save As")
+        save_as_action.setStatusTip("Save composition to new JSON")
+        save_as_action.triggered.connect(self.save_file_as)
+        file_nav.addAction(save_as_action)
+
+        export_action = QAction("&Export")
+        export_action.setStatusTip("Export composition to Python class")
+        export_action.triggered.connect(self.export_file)
+        file_nav.addAction(export_action)
+
+        self.applayout.setMenuBar(menu_bar)
 
         # Add editor menus
         ## Layers menu
@@ -58,6 +94,7 @@ class Editor(QApplication):
         self.matrix.subscribe_selected_updates(self.update_props)
         self.matrix.set_selected(1)
 
+        self.container.setLayout(self.applayout)
         self.container.showMaximized()
 
         sys.exit(self.exec())
@@ -129,6 +166,87 @@ class Editor(QApplication):
                 pass
 
             self.layers_menu.addWidget(list_item)
+
+    def get_json(self): 
+        '''
+        Get JSON string representation of the current composition
+        '''
+        json_obj = []
+        for w in self.matrix.widgets[1:]: 
+            json_obj.append({
+                'type': type(w).__name__,
+                'params': w.params()
+            })
+        return json.dumps(json_obj)
+
+    @Slot(int)
+    def save_file(self): 
+        '''
+        Save composition as JSON file
+        '''
+        if self.file_name is None: 
+            # If no file name set, get file name and update
+            return self.save_file_as()
+        else: 
+            # If name is set, overwrite file
+            with open(self.file_name, 'w') as f: 
+                f.write(self.get_json())
+
+    @Slot(int)
+    def save_file_as(self): 
+        '''
+        Save composition at new file name
+        '''
+        # Create modal to get filename & location
+        modal = QFileDialog()
+        file_name, _ = modal.getSaveFileName(
+            self.container, 
+            "Save As", 
+            self.DEF_SAVE_DIR, 
+            "JSON Files (*.json);;All Files (*)"
+        )
+        if file_name: 
+            with open(file_name, 'w') as f: 
+                f.write(self.get_json())
+            self.file_name = file_name
+
+        self.container.setWindowTitle(os.path.basename(self.file_name))
+
+    @Slot(int)
+    def open_file(self): 
+        '''
+        Load composition from JSON file
+        '''
+        modal = QFileDialog()
+        file_name, _ = modal.getOpenFileName(
+            self.container, 
+            "Open file", 
+            self.DEF_SAVE_DIR, 
+            "JSON Files (*.json);;All Files (*)"
+        )
+
+        print("open file", file_name)
+        if file_name is None: 
+            return
+        
+        with open(file_name, 'r') as f: 
+            json_content = json.load(f)
+
+        self.matrix.clear_widgets()
+        module = importlib.import_module("src.Draggable")
+        for w in json_content: 
+            cls = getattr(module, w['type'])
+            self.matrix.add_widget(cls.init_params(w['params']))
+
+        self.file_name = file_name
+        self.container.setWindowTitle(os.path.basename(self.file_name))
+
+    @Slot(int)
+    def export_file(self): 
+        '''
+        Export composition to Python class for use on display
+        '''
+        pass
 
 class LayersItem(QWidget):
     '''

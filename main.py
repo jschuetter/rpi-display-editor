@@ -7,13 +7,8 @@ This application is designed to be a lightweight desktop editor for developing m
 '''
 
 import sys
-from PySide6 import QtCore, QtWidgets, QtGui
-from PySide6.QtWidgets import QGridLayout, QHBoxLayout, QLabel
 
 from src.Editor import Editor
-from src.Matrix import MatrixWidget, MatrixEmulatorWidget
-from src.Draggable import TextWidget, ImgWidget
-from src.ScrollableMenu import ScrollableMenu
 
 SRC_DIR = "./src/"
 

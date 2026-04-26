@@ -183,6 +183,12 @@ class MatrixEmulatorWidget(MatrixWidget):
         # List of listener instances for selected widget updates
         self.selected_listeners = []
 
+    def get_widgets(self): 
+        '''
+        Getter method for widget list -- excludes background layer
+        '''
+        return self.widgets[1:]
+
     def add_widget(self, widget):
         '''
         Add widget to matrix emulator interface
@@ -201,6 +207,17 @@ class MatrixEmulatorWidget(MatrixWidget):
         widget.show()
         widget.update()
         self.update_colors()
+
+    def clear_widgets(self): 
+        '''
+        Helper method for removing all widgets
+        '''
+        while len(self.widgets) > 1: 
+            w = self.widgets.pop()
+            self._layers.pop()
+            w.deleteLater()
+            
+        self.selected_idx = None
 
     def set_selected(self, idx):
         '''

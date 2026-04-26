@@ -33,7 +33,8 @@ class DragWidget(QWidget):
     def params(self): 
         '''
         Return custom param dict
-        Must have format key: {attr, type}
+        Should include all mandatory arguments for __init__(), in order
+        Must have format 'key': {'value', 'type'}
         '''
         return {
             'name': {
@@ -54,10 +55,21 @@ class DragWidget(QWidget):
         '''
         Update params based on dict (same schema as params())
         '''
-        self.name = param_dict['name']
+        self.name = param_dict['name']['value']
         self.mat_bb.moveTopLeft(
-            param_dict['x'],
-            param_dict['y']
+            param_dict['x']['value'],
+            param_dict['y']['value']
+        )
+
+    @classmethod
+    def init_params(cls, param_dict):
+        '''
+        Instantiate object on params dict
+        '''
+        return cls(
+            param_dict['name']['value'],
+            param_dict['x']['value'],
+            param_dict['y']['value'],
         )
 
     def mousePressEvent(self, e):
@@ -174,17 +186,31 @@ class TextWidget(DragWidget):
         '''
         Update params based on dict (same schema as params())
         '''
-        self.name = param_dict['name']
-        self.text = param_dict['text']
-        self.font_path = os.path.join(self.FONTS_PATH, param_dict['font'])
+        self.name = param_dict['name']['value']
+        self.text = param_dict['text']['value']
+        self.font_path = os.path.join(self.FONTS_PATH, param_dict['font']['value'])
         self.font_ = Font(self.font_path)
-        self.color = QColor.fromString(param_dict['color'])
+        self.color = QColor.fromString(param_dict['color']['value'])
         self.update_bitmap()
         self.update_bb()
         self.mat_bb.moveTopLeft(QPoint(
-            int(param_dict['x']),
-            int(param_dict['y'])
+            int(param_dict['x']['value']),
+            int(param_dict['y']['value'])
         ))
+    
+    @classmethod
+    def init_params(cls, param_dict):
+        '''
+        Instantiate object on params dict
+        '''
+        return cls(
+            param_dict['name']['value'],
+            param_dict['x']['value'],
+            param_dict['y']['value'],
+            param_dict['text']['value'],
+            param_dict['font']['value'],
+            param_dict['color']['value'],
+        )
 
     def draw(self):
         '''
@@ -288,12 +314,26 @@ class ImgWidget(DragWidget):
         '''
         Update params based on dict (same schema as params())
         '''
-        self.name = param_dict['name']
+        self.name = param_dict['name']['value']
         self.mat_bb.moveTopLeft(QPoint(
-            int(param_dict['x']),
-            int(param_dict['y'])
+            int(param_dict['x']['value']),
+            int(param_dict['y']['value'])
         ))
-        self.w = int(param_dict['width'])
-        self.h = int(param_dict['height'])
-        self.img_path = param_dict['path']
+        self.w = int(param_dict['width']['value'])
+        self.h = int(param_dict['height']['value'])
+        self.img_path = param_dict['path']['value']
         self.img_array = self.process_image_from_path()
+        
+    @classmethod
+    def init_params(cls, param_dict):
+        '''
+        Instantiate object on params dict
+        '''
+        return cls(
+            param_dict['name']['value'],
+            int(param_dict['x']['value']),
+            int(param_dict['y']['value']),
+            param_dict['path']['value'],
+            param_dict['width']['value'],
+            param_dict['height']['value'],
+        )
