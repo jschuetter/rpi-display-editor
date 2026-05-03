@@ -34,13 +34,6 @@ class Editor(QApplication):
         # Add matrix emulator
         self.matrix = MatrixEmulatorWidget(px_size=8, pitch=2)
 
-        # DEV TESTING WIDGETS
-        self.matrix.fill('blue')
-        img = ImgWidget("cloud-icon", 15, 0, "./cloudy-day.png", 15, 15)
-        self.matrix.add_widget(img)
-        text = TextWidget("hello-world", 32, 0, "Hello, World!", "basic/4x6.bdf", "white")
-        self.matrix.add_widget(text)
-
         # Composition metadata
         self.file_name = None
         # Create default save directory if does not exist
