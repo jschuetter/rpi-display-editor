@@ -51,15 +51,15 @@ class DragWidget(QWidget):
             },
         }
 
-    def from_params(self, param_dict):
+    def from_param_inputs(self, param_dict):
         '''
         Update params based on dict (same schema as params())
         '''
-        self.name = param_dict['name']['value']
-        self.mat_bb.moveTopLeft(
-            param_dict['x']['value'],
-            param_dict['y']['value']
-        )
+        self.name = param_dict['name']
+        self.mat_bb.moveTopLeft(QPoint(
+            int(param_dict['x']),
+            int(param_dict['y'])
+        ))
 
     @classmethod
     def init_params(cls, param_dict):
@@ -137,6 +137,9 @@ class TextWidget(DragWidget):
         Update bitmap attribute using current attribute values
         '''
         bitmap_str = None
+        if self.text is None or self.text == '': 
+            # Return if text is empty
+            return
         for char in self.text:
             bitmap_str = self.font_.glyph(char).draw() if bitmap_str is None else bitmap_str.concat(self.font_.glyph(char).draw())
         self.bitmap = bitmap_str.todata(2)
@@ -182,22 +185,22 @@ class TextWidget(DragWidget):
             }
         }
     
-    def from_params(self, param_dict):
+    def from_param_inputs(self, param_dict):
         '''
         Update params based on dict (same schema as params())
         '''
-        self.name = param_dict['name']['value']
-        self.text = param_dict['text']['value']
-        self.font_path = param_dict['font']['value']
-        self.font_ = Font(self.FONTS_PATH + param_dict['font']['value'])
-        self.color = QColor.fromString(param_dict['color']['value'])
+        self.name = param_dict['name']
+        self.text = param_dict['text']
+        self.font_path = param_dict['font']
+        self.font_ = Font(self.FONTS_PATH + param_dict['font'])
+        self.color = QColor.fromString(param_dict['color'])
         self.update_bitmap()
         self.update_bb()
         self.mat_bb.moveTopLeft(QPoint(
-            int(param_dict['x']['value']),
-            int(param_dict['y']['value'])
+            int(param_dict['x']),
+            int(param_dict['y'])
         ))
-    
+
     @classmethod
     def init_params(cls, param_dict):
         '''
@@ -231,7 +234,7 @@ class TextWidget(DragWidget):
         '''
         font_path = Path(self.FONTS_PATH)
         font_files = font_path.rglob("*.bdf")
-        return [os.path.relpath(f, font_path) for f in font_files]
+        return [os.path.relpath(f, font_path).replace('\\', '/') for f in font_files]
 
 class ImgWidget(DragWidget):
     def __init__(self, name, x, y, path, width=None, height=None, parent=None):
@@ -310,18 +313,18 @@ class ImgWidget(DragWidget):
             },
         }
     
-    def from_params(self, param_dict):
+    def from_param_inputs(self, param_dict):
         '''
         Update params based on dict (same schema as params())
         '''
-        self.name = param_dict['name']['value']
+        self.name = param_dict['name']
         self.mat_bb.moveTopLeft(QPoint(
-            int(param_dict['x']['value']),
-            int(param_dict['y']['value'])
+            int(param_dict['x']),
+            int(param_dict['y'])
         ))
-        self.w = int(param_dict['width']['value'])
-        self.h = int(param_dict['height']['value'])
-        self.img_path = param_dict['path']['value']
+        self.w = int(param_dict['width'])
+        self.h = int(param_dict['height'])
+        self.img_path = param_dict['path']
         self.img_array = self.process_image_from_path()
         
     @classmethod

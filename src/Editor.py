@@ -107,14 +107,10 @@ class Editor(QApplication):
         currently selected widget
         '''
         sw = self.matrix.get_selected()
-        sw.from_params({
+        sw.from_param_inputs({
             key: value.currentText() if type(value) == QComboBox else value.text() 
              for key, value in self.properties_inputs.items()
         })
-        params = {
-            key: value.currentText() if type(value) == QComboBox else value.text() 
-             for key, value in self.properties_inputs.items()
-        }
 
         self.matrix.update_selected()
 
@@ -145,6 +141,7 @@ class Editor(QApplication):
 
                 for opt in obj['options']:
                     input.addItem(opt)
+                input.setCurrentText(obj['value'])
                 input.currentIndexChanged.connect(self.push_props)
             else: 
                 input = QLineEdit(str(obj['value']))
