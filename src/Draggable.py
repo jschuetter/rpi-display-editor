@@ -131,6 +131,7 @@ class TextWidget(DragWidget):
         self.bitmap = None
         self.update_bitmap()
         self.mat_bb = QRect(int(x), int(y), len(self.bitmap[0]), len(self.bitmap))
+        self.mat_bb.moveBottomLeft(QPoint(int(x), int(y)))
 
     def update_bitmap(self): 
         '''
@@ -167,7 +168,7 @@ class TextWidget(DragWidget):
                 'type': 'int',
             },
             'y': {
-                'value': self.mat_bb.top(),
+                'value': self.mat_bb.bottom(),
                 'type': 'int',
             },
             'text': {
@@ -196,7 +197,7 @@ class TextWidget(DragWidget):
         self.color = QColor.fromString(param_dict['color'])
         self.update_bitmap()
         self.update_bb()
-        self.mat_bb.moveTopLeft(QPoint(
+        self.mat_bb.moveBottomLeft(QPoint(
             int(param_dict['x']),
             int(param_dict['y'])
         ))
