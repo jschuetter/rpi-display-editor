@@ -111,9 +111,9 @@ class DragWidget(QWidget):
         painter.drawRect(0, 0, self.width(), self.height())
 
 class TextWidget(DragWidget):
-    FONTS_PATH = './rpi-display-src/fonts'
+    FONTS_PATH = './rpi-display-src/fonts/'
     
-    def __init__(self, name, x, y, text, font_path=os.path.join(FONTS_PATH, 'basic/4x6.bdf'), color="#ffffff", parent=None):
+    def __init__(self, name, x, y, text, font_path='basic/4x6.bdf', color="#ffffff", parent=None):
         '''
         Docstring for __init__
         
@@ -125,7 +125,7 @@ class TextWidget(DragWidget):
         '''
         super().__init__(name, parent)
         self.font_path = font_path
-        self.font_ = Font(font_path)
+        self.font_ = Font(self.FONTS_PATH +  font_path)
         self.color = color if isinstance(color, QColor) else QColor(color)
         self.text = text
         self.bitmap = None
@@ -188,8 +188,8 @@ class TextWidget(DragWidget):
         '''
         self.name = param_dict['name']['value']
         self.text = param_dict['text']['value']
-        self.font_path = os.path.join(self.FONTS_PATH, param_dict['font']['value'])
-        self.font_ = Font(self.font_path)
+        self.font_path = param_dict['font']['value']
+        self.font_ = Font(self.FONTS_PATH + param_dict['font']['value'])
         self.color = QColor.fromString(param_dict['color']['value'])
         self.update_bitmap()
         self.update_bb()
