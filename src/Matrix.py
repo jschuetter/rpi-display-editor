@@ -202,8 +202,7 @@ class MatrixEmulatorWidget(MatrixWidget):
         widget.setParent(self)
         disp_bb = self._mat_to_disp(widget.mat_bb)
         widget.setGeometry(disp_bb)
-        widget.setMinimumSize(widget.size())
-        # widget.move(disp_bb.topLeft())
+        widget.disp_bb = disp_bb
         widget.show()
         widget.update()
         self.update_colors()
@@ -307,9 +306,8 @@ class MatrixEmulatorWidget(MatrixWidget):
             ] = widget_bitmap
 
         # Update widget display box
-        # widget.disp_bb = self._mat_to_disp(widget.mat_bb)
-        widget.setGeometry(self._mat_to_disp(widget.mat_bb))
-        # widget.move(self._mat_to_disp(widget.mat_bb).topLeft())
+        widget.disp_bb = self._mat_to_disp(widget.mat_bb)
+        widget.setGeometry(widget.disp_bb)
         widget.update()
 
         return output_array

@@ -25,6 +25,7 @@ class DragWidget(QWidget):
         super().__init__(parent)
         self.name = name
         self.mat_bb = QRect()  # Bounding box for matrix emulator
+        self.disp_bb = QRect()  # Bounding box on display (px)
         self.show_box = False
         # Drag properties
         self.dragging = False
@@ -108,7 +109,8 @@ class DragWidget(QWidget):
         pen.setWidth(5)
         painter.setPen(pen)
         painter.setBrush(QBrush(QColor(0, 0, 0, 0)))  # Transparent fill
-        painter.drawRect(0, 0, self.width(), self.height())
+        painter.drawRect(0, 0, self.disp_bb.width(), self.disp_bb.height())
+
 
 class TextWidget(DragWidget):
     FONTS_PATH = './rpi-display-src/fonts/'
@@ -267,6 +269,11 @@ class ImgWidget(DragWidget):
             img.thumbnail((self.w, self.w), Image.LANCZOS)
         elif self.w is None and self.h is not None:
             img.thumbnail((self.h, self.h), Image.LANCZOS)
+        
+        # Update bounding box dimensions
+        self.w = img.width
+        self.h = img.height
+        self.mat_bb.setSize(QSize(self.w, self.h))
         
         img_array_t = np.array(img)  # temp image array
         # Process image array into QColor values

@@ -81,11 +81,10 @@ class Editor(QApplication):
         self.applayout.addWidget(self.properties_menu, 0, 2)
         self.applayout.addWidget(self.add_menu, 1, 1)
 
-        # DEBUG TESTING
+        # Add callbacks to update listener
         self.matrix.subscribe_selected_updates(self.pull_props)
         self.matrix.subscribe_selected_updates(self.update_layers)
         self.matrix.subscribe_selected_updates(self.update_props)
-        self.matrix.set_selected(1)
 
         self.container.setLayout(self.applayout)
         self.container.setWindowTitle(self.DEFAULT_TITLE)
